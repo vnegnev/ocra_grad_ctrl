@@ -18,4 +18,48 @@ Benjamin Menkuec, Vlad Negnevitsky
 
 * Simulating the designs in Icarus Verilog
 
-  TODO
+  The testbenches are designed to be run with Icarus Verilog/VVP, producing LXT2 traces to be viewed in GTKwave.
+  Later the same code will be integrated into higher-level Verilator testbenches and a system-level model; keep this in mind when writing cores and testbenches.
+
+  Basic workflow to run a testbench and view its trace output: (e.g. for =ocra_grad_ctrl_tb.v= :)
+
+  #+begin_src sh
+  iverilog -o icarus_compile/000_ocra_grad_ctrl_tb.compiled ocra_grad_ctrl_tb.v -Wall
+  vvp -N icarus_compile/000_ocra_grad_ctrl_tb.compiled -lxt2
+  gtkwave icarus_compile/000_ocra_grad_ctrl_tb.lxt icarus_compile/001_ocra_grad_ctrl_tb.sav
+  #+end_src
+
+  VN: In my editor I have three keyboard shortcuts mapped to the first command, the first two, and all three commands.
+  This makes it very quick to check the syntax of my HDL, and run small-to-medium testbenches from my editor.
+  I always create an =icarus_compile= folder inside my HDL folders to allow the commands to work.
+  Of course you can modify the arguments of =iverilog=, =vvp= and =gtkwave= to use other file names and conventions if you prefer, however for this project I'd prefer to stick to the above conventions.
+
+  From GTKwave, you can use Ctrl-s to save your waveform view settings, and Ctrl-Shift-r to reload the LXT waveform without reopening GTKwave.
+
+* Verilog conventions/advice
+
+  Inputs have a suffix =_i=, outputs have a suffix =_o= , with the exceptions of the main clock ( =clk= ) and the main reset ( =rst= or =rst_n= depending on active-high/active-low).
+
+  All I/O is active-high where feasible, unless there are other design constraints.
+
+  The need to use synchronous or asynchronous resets in the HDL should be minimised wherever possible. 
+
+  Registers should be initialised inline with their creation (e.g. =reg [4:0] a = 5'd4;= ).
+
+  Arrays or RAMs should be initialised in =initial= blocks where this makes sense, however RAMs can be left un-initialised for generality where possible (the design should not rely on preset values in RAMs anyway).
+
+  All outputs are registers, unless there is a good reason for them not to be.
+
+  Registers internal to a module have a suffix =_r= .
+
+  Pipeline registers have suffixes =_r=, =_r2=, =_r3= etc.
+
+  Combinational =always= blocks, e.g. =always @(*)=, should be avoided.
+  Combinational logic should be implemented in sequential always blocks (e.g. =always @(posedge clk) begin ...= or directly in wire/assign declarations if the logic is simple.
+
+  You should liberally use intermediate registers, unless you are writing the critical control or data path in a module and latency is a concern.
+
+  Nested =if/else= blocks should be avoided where possible.
+  It is usually better to write a single-level =case= statement acting on a 5 or 6-bit input bus; although this worsens readability, this often improves implementation results.
+
+  The design should make liberal use of comments, as long as they remain up-to-date! If in doubt, write something.

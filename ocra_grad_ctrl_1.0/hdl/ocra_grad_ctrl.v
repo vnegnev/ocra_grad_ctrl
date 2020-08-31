@@ -32,10 +32,26 @@ module ocra_grad_ctrl #
    )
    (
     // Users to add ports here
+    input [13:0] 			      grad_bram_offset_i,
+    input 				      grad_bram_rst_i, // maybe tie to AXI reset later
 
+    // Outputs to the OCRA1 board (concatenation on the expansion header etc will be handled in Vivado's block diagram)
+    output 				      oc1_clk_o, // SPI clock
+    output 				      oc1_syncn_o, // sync (roughly equivalent to SPI CS)
+    output 				      oc1_ldacn_o, // ldac
+    output 				      oc1_sdox_o, // data out, X DAC
+    output 				      oc1_sdoy_o, // data out, Y DAC
+    output 				      oc1_sdoz_o, // data out, Z DAC
+    output 				      oc1_sdoz2_o, // data out, Z2 DAC
+
+    // I/O to the GPA-FHDO board
+    output 				      fhd_clk_o, // SPI clock
+    output 				      fhd_sdo_o, // data out
+    output 				      fhd_ssn_o, // SPI CS
+    input 				      fhd_sdi_i, // data in
+    
     // User ports ends
     // Do not modify the ports beyond this line
-
 
     // Ports of Axi Slave Bus Interface S00_AXI
     input 				      s00_axi_aclk,
