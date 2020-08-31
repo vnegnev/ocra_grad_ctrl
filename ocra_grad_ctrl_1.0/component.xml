@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spirit:component xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <spirit:vendor>github.com</spirit:vendor>
+  <spirit:vendor>user.org</spirit:vendor>
   <spirit:library>user</spirit:library>
   <spirit:name>ocra_grad_ctrl</spirit:name>
   <spirit:version>1.0</spirit:version>
@@ -169,7 +169,7 @@
       <spirit:parameters>
         <spirit:parameter>
           <spirit:name>WIZ_DATA_WIDTH</spirit:name>
-          <spirit:value spirit:format="long" spirit:id="BUSIFPARAM_VALUE.S00_AXI.WIZ_DATA_WIDTH" spirit:choiceRef="choice_list_6fc15197">32</spirit:value>
+          <spirit:value spirit:format="long" spirit:id="BUSIFPARAM_VALUE.S00_AXI.WIZ_DATA_WIDTH" spirit:choiceRef="choice_list_ea018de4">32</spirit:value>
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>WIZ_NUM_REG</spirit:name>
@@ -367,7 +367,7 @@
       <spirit:parameters>
         <spirit:parameter>
           <spirit:name>WIZ_DATA_WIDTH</spirit:name>
-          <spirit:value spirit:format="long" spirit:id="BUSIFPARAM_VALUE.S_AXI_INTR.WIZ_DATA_WIDTH" spirit:choiceRef="choice_list_6fc15197">32</spirit:value>
+          <spirit:value spirit:format="long" spirit:id="BUSIFPARAM_VALUE.S_AXI_INTR.WIZ_DATA_WIDTH" spirit:choiceRef="choice_list_ea018de4">32</spirit:value>
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>WIZ_NUM_REG</spirit:name>
@@ -525,14 +525,14 @@
         <spirit:displayName>Verilog Synthesis</spirit:displayName>
         <spirit:envIdentifier>verilogSource:vivado.xilinx.com:synthesis</spirit:envIdentifier>
         <spirit:language>verilog</spirit:language>
-        <spirit:modelName>ocra_grad_ctrl_v1_0</spirit:modelName>
+        <spirit:modelName>ocra_grad_ctrl</spirit:modelName>
         <spirit:fileSetRef>
           <spirit:localName>xilinx_verilogsynthesis_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>4c833695</spirit:value>
+            <spirit:value>738b318e</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -541,14 +541,28 @@
         <spirit:displayName>Verilog Simulation</spirit:displayName>
         <spirit:envIdentifier>verilogSource:vivado.xilinx.com:simulation</spirit:envIdentifier>
         <spirit:language>verilog</spirit:language>
-        <spirit:modelName>ocra_grad_ctrl_v1_0</spirit:modelName>
+        <spirit:modelName>ocra_grad_ctrl</spirit:modelName>
         <spirit:fileSetRef>
           <spirit:localName>xilinx_verilogbehavioralsimulation_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>4c833695</spirit:value>
+            <spirit:value>738b318e</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_softwaredriver</spirit:name>
+        <spirit:displayName>Software Driver</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:sw.driver</spirit:envIdentifier>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_softwaredriver_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>818a6656</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -1273,7 +1287,7 @@
   </spirit:model>
   <spirit:choices>
     <spirit:choice>
-      <spirit:name>choice_list_6fc15197</spirit:name>
+      <spirit:name>choice_list_ea018de4</spirit:name>
       <spirit:enumeration>32</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
@@ -1286,32 +1300,73 @@
     <spirit:fileSet>
       <spirit:name>xilinx_verilogsynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0_S00_AXI.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl_S_AXI_INTR.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0_S_AXI_INTR.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl_S00_AXI.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_3a9880cc</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_1ade4ae3</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
       <spirit:name>xilinx_verilogbehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0_S00_AXI.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl_S_AXI_INTR.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0_S_AXI_INTR.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl_S00_AXI.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/ocra_grad_ctrl_v1_0.v</spirit:name>
+        <spirit:name>hdl/ocra_grad_ctrl.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_softwaredriver_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/data/ocra_grad_ctrl.mdd</spirit:name>
+        <spirit:userFileType>mdd</spirit:userFileType>
+        <spirit:userFileType>driver_mdd</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/data/ocra_grad_ctrl.tcl</spirit:name>
+        <spirit:fileType>tclSource</spirit:fileType>
+        <spirit:userFileType>driver_tcl</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/src/Makefile</spirit:name>
+        <spirit:userFileType>driver_src</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/src/ocra_grad_ctrl.h</spirit:name>
+        <spirit:fileType>cSource</spirit:fileType>
+        <spirit:userFileType>driver_src</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/src/ocra_grad_ctrl.c</spirit:name>
+        <spirit:fileType>cSource</spirit:fileType>
+        <spirit:userFileType>driver_src</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>drivers/ocra_grad_ctrl_v1_0/src/ocra_grad_ctrl_selftest.c</spirit:name>
+        <spirit:fileType>cSource</spirit:fileType>
+        <spirit:userFileType>driver_src</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1337,7 +1392,7 @@
       <spirit:name>C_S00_AXI_DATA_WIDTH</spirit:name>
       <spirit:displayName>C S00 AXI DATA WIDTH</spirit:displayName>
       <spirit:description>Width of S_AXI data bus</spirit:description>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S00_AXI_DATA_WIDTH" spirit:choiceRef="choice_list_6fc15197" spirit:order="3">32</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S00_AXI_DATA_WIDTH" spirit:choiceRef="choice_list_ea018de4" spirit:order="3">32</spirit:value>
       <spirit:vendorExtensions>
         <xilinx:parameterInfo>
           <xilinx:enablement>
@@ -1387,7 +1442,7 @@
       <spirit:name>C_S_AXI_INTR_DATA_WIDTH</spirit:name>
       <spirit:displayName>C S AXI INTR DATA WIDTH</spirit:displayName>
       <spirit:description>Width of S_AXI data bus</spirit:description>
-      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S_AXI_INTR_DATA_WIDTH" spirit:choiceRef="choice_list_6fc15197" spirit:order="7">32</spirit:value>
+      <spirit:value spirit:format="long" spirit:resolve="user" spirit:id="PARAM_VALUE.C_S_AXI_INTR_DATA_WIDTH" spirit:choiceRef="choice_list_ea018de4" spirit:order="7">32</spirit:value>
       <spirit:vendorExtensions>
         <xilinx:parameterInfo>
           <xilinx:enablement>
@@ -1477,46 +1532,31 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>ocra_grad_ctrl_v1.0</xilinx:displayName>
-      <xilinx:vendorDisplayName>OCRA project</xilinx:vendorDisplayName>
-      <xilinx:coreRevision>1</xilinx:coreRevision>
-      <xilinx:upgrades>
-        <xilinx:canUpgradeFrom>user.org:user:ocra_grad_ctrl:1.0</xilinx:canUpgradeFrom>
-      </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2020-08-31T10:39:04Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>2</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2020-08-31T11:16:18Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@567831f_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@773eb353_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@245eb109_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a20dc54_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@333eae4d_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@67c270ab_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@204777d_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ec50f15_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7b2b950e_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@3860da0_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ea08300_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@69b12f0_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@709caedb_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@25d1a8ba_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@2ddad8_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@3262b64c_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@3f1cc8a6_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@796554a0_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@73a0eadd_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@ca0c727_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@5046631b_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@45b496e1_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@3eee116a_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3a33a1d6_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@30c9c909_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7369932a_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a1ec414_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@63c87541_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2b9e6e7e_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@700d31c2_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@8bf38ac_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4d2350f3_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1712d8e3_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2c7f9ba_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@78f40f06_ARCHIVE_LOCATION">/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2019.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="c70bfc48"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="8e7cc8b0"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="74e1175e"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="5813f5b9"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="417f9802"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="696dbe60"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="ede66766"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="689fa763"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="8c9bff78"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>
