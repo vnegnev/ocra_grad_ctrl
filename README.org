@@ -1,0 +1,21 @@
+#+TITLE: OCRA gradient DAC controller core
+
+Rev 1.0
+
+Benjamin Menkuec, Vlad Negnevitsky
+
+* Summary
+
+  Unified core that contains
+
+  - four gradient BRAMs and a BRAM-reading FSM module that produces groups of four 24-bit words
+
+  - OCRA1-compatible SPI serialiser module that forwards this data to the AD5781 DACs on the OCRA1 gradient board
+
+  - GPA-FHDO-compatible SPI serialiser module that forwards this data to the four-channel AC80504 DAC on the GPA-FHDO gradient board
+
+  - Behavioural models of the DACs and generic testbenches for each module, designed to be run with Icarus Verilog/GTKWave.
+
+* Simulating the designs in Icarus Verilog
+
+  TODO
