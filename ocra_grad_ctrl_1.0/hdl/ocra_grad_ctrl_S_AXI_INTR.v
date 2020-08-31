@@ -3,7 +3,7 @@
 
  `timescale 1ns / 1ns
 
-module ocra_grad_ctrl_v1_0_S_AXI_INTR #
+module ocra_grad_ctrl_S_AXI_INTR #
   (
    // Users to add parameters here
 

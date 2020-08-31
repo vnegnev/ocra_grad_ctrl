@@ -1,9 +1,11 @@
+// This module will later contain the memory-mapped gradient BRAMs and the data-output FSM
+
 `ifndef _OCRA_GRAD_CTRL_S00_AXI_
  `define _OCRA_GRAD_CTRL_S00_AXI_
 
  `timescale 1ns / 1ns
 
-module ocra_grad_ctrl_v1_0_S00_AXI #
+module ocra_grad_ctrl_S00_AXI #
   (
    // Users to add parameters here
 
@@ -13,7 +15,7 @@ module ocra_grad_ctrl_v1_0_S00_AXI #
    // Width of S_AXI data bus
    parameter integer C_S_AXI_DATA_WIDTH = 32,
    // Width of S_AXI address bus
-   parameter integer C_S_AXI_ADDR_WIDTH = 5
+   parameter integer C_S_AXI_ADDR_WIDTH = 14
    )
    (
     // Users to add ports here

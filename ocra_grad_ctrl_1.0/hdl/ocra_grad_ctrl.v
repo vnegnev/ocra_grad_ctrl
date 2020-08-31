@@ -24,26 +24,11 @@
 
  `timescale 1ns / 1ns
 
-module ocra_grad_ctrl_v1_0 #
+module ocra_grad_ctrl #
   (
    // Users to add parameters here
-
+   parameter test_param = 0
    // User parameters ends
-   // Do not modify the parameters beyond this line
-
-
-   // Parameters of Axi Slave Bus Interface S00_AXI
-   parameter integer C_S00_AXI_DATA_WIDTH = 32,
-   parameter integer C_S00_AXI_ADDR_WIDTH = 5,
-
-   // Parameters of Axi Slave Bus Interface S_AXI_INTR
-   parameter integer C_S_AXI_INTR_DATA_WIDTH = 32,
-   parameter integer C_S_AXI_INTR_ADDR_WIDTH = 5,
-   parameter integer C_NUM_OF_INTR = 1,
-   parameter C_INTR_SENSITIVITY = 32'hFFFFFFFF,
-   parameter C_INTR_ACTIVE_STATE = 32'hFFFFFFFF,
-   parameter integer C_IRQ_SENSITIVITY = 1,
-   parameter integer C_IRQ_ACTIVE_STATE = 1
    )
    (
     // Users to add ports here
@@ -99,11 +84,26 @@ module ocra_grad_ctrl_v1_0 #
     input 				      s_axi_intr_rready,
     output 				      irq
     );
+
+   // VN: I've made all these localparams, since they're seldom going to be modified by us
+   // Parameters of Axi Slave Bus Interface S00_AXI
+   localparam integer 			      C_S00_AXI_DATA_WIDTH = 32;
+   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 14;
+
+   // Localparams of Axi Slave Bus Interface S_AXI_INTR
+   localparam integer 			      C_S_AXI_INTR_DATA_WIDTH = 32;
+   localparam integer 			      C_S_AXI_INTR_ADDR_WIDTH = 5;
+   localparam integer 			      C_NUM_OF_INTR = 1;
+   localparam C_INTR_SENSITIVITY = 32'hffffffff;
+   localparam C_INTR_ACTIVE_STATE = 32'hffffffff;
+   localparam integer 			      C_IRQ_SENSITIVITY = 1;
+   localparam integer 			      C_IRQ_ACTIVE_STATE = 1;
+   
    // Instantiation of Axi Bus Interface S00_AXI
-   ocra_grad_ctrl_v1_0_S00_AXI # ( 
+   ocra_grad_ctrl_S00_AXI # ( 
 				   .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
 				   .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-				   ) ocra_grad_ctrl_v1_0_S00_AXI_inst (
+				   ) ocra_grad_ctrl_S00_AXI_inst (
 								       .S_AXI_ACLK(s00_axi_aclk),
 								       .S_AXI_ARESETN(s00_axi_aresetn),
 								       .S_AXI_AWADDR(s00_axi_awaddr),
@@ -128,7 +128,7 @@ module ocra_grad_ctrl_v1_0 #
 								       );
 
    // Instantiation of Axi Bus Interface S_AXI_INTR
-   ocra_grad_ctrl_v1_0_S_AXI_INTR # ( 
+   ocra_grad_ctrl_S_AXI_INTR # ( 
 				      .C_S_AXI_DATA_WIDTH(C_S_AXI_INTR_DATA_WIDTH),
 				      .C_S_AXI_ADDR_WIDTH(C_S_AXI_INTR_ADDR_WIDTH),
 				      .C_NUM_OF_INTR(C_NUM_OF_INTR),
@@ -136,7 +136,7 @@ module ocra_grad_ctrl_v1_0 #
 				      .C_INTR_ACTIVE_STATE(C_INTR_ACTIVE_STATE),
 				      .C_IRQ_SENSITIVITY(C_IRQ_SENSITIVITY),
 				      .C_IRQ_ACTIVE_STATE(C_IRQ_ACTIVE_STATE)
-				      ) ocra_grad_ctrl_v1_0_S_AXI_INTR_inst (
+				      ) ocra_grad_ctrl_S_AXI_INTR_inst (
 									     .S_AXI_ACLK(s_axi_intr_aclk),
 									     .S_AXI_ARESETN(s_axi_intr_aresetn),
 									     .S_AXI_AWADDR(s_axi_intr_awaddr),
