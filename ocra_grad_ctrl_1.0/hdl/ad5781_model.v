@@ -24,20 +24,79 @@
  `timescale 1ns/1ns
 
 module ad5781_model(
-		    input clk,
-		    input syncn,
-		    input ldacn,
-		    input sdo,
-
-		    output [17:0] dac_out,
+		    // pin labelling as in the AD5781 datasheet
+		    input 	      sdin,
+		    input 	      sclk,
+		    input 	      syncn,
+		    input 	      ldacn,
+		    input 	      clrn,
+		    input 	      resetn,
+		    
+		    output reg 	      sdo,
+		    output reg [17:0] vout // 
 		    );
 
-   reg [23:0] 			  dac_reg, ctrl_reg, soft_ctrl_reg;
+   reg [23:0] 			  dac_reg, ctrl_reg, clearcode_reg, soft_ctrl_reg;
+   wire 			  rbuf = ctrl_reg[1], opgnd = ctrl_reg[2], 
+				  dactri = ctrl_reg[3], bin2sc = ctrl_reg[4], sdodis = ctrl_reg[5];
+   reg [23:0] 			  spi_input;
+   reg [17:0] 			  vout_r;
+   wire [2:0] 			  spi_addr = spi_input[23:21];
+   reg [5:0] 			  spi_counter = 0;
+   reg 				  read_mode = 0; // TODO: implement readback mode in FSM
+   wire 			  spi_transfer_done = spi_counter == 23;
 
+   always @(negedge sclk or negedge resetn) begin
+      if (!resetn) begin
+	 dac_reg <= 0;
+	 ctrl_reg <= 0;
+	 soft_ctrl_reg <= 0;
+	 spi_counter <= 0;
+	 spi_input <= 0;
+      end else begin
+	 // see P20 of datasheet Rev E
+	 if (syncn) begin
+	    spi_counter <= 0;
+	    if (spi_transfer_done && !read_mode) begin
+	       // exactly 24 negedges of sclk occurred since last syncn
+	       case (spi_addr)
+		 3'b001: dac_reg <= spi_input;
+		 3'b010: ctrl_reg <= spi_input;
+		 3'b011: clearcode_reg <= spi_input;
+		 3'b100: soft_ctrl_reg <= spi_input;
+	       endcase // case (spi_addr)
+	    end	    
+	 end else begin
+	    spi_counter <= spi_counter + 1;
+	    if (spi_counter == 0) read_mode <= sdin; // MSB of transfer
+	    spi_input <= {spi_input[22:0], sdin}; // clock in data only when syncn low
+	 end // else: !if(spi_transfer_done && !read_mode)	    
+      end
+   end
 
-   always @(posedge clk) begin
-      
+   // Roughly implemented Table 9 truth table in datasheet, but don't
+   // rely too closely on it! Edges are ignored; only the final
+   // steady-state values are used (e.g. if the table says 'falling
+   // edge, 0, 1', I have interpreted the final state to be 0, 0,
+   // 1). resetn behaviour is implemented by the sequential always
+   // block above.
+   wire [2:0] ctrl = {ldacn, clrn, resetn};
+   always @(ctrl) begin
+      case (ctrl)
+	3'b001: vout_r = clearcode_reg[19:2];
+	3'b011: vout_r = dac_reg[19:2];
+	3'b101: vout_r = clearcode_reg[19:2];
+	3'b111: vout_r = dac_reg[19:2];
+	default: vout_r = 0; // catch unhandled cases
+	//3'b111 will output clearcode_reg if clrn has a rising edge - this behaviour is un-implemented here
+      endcase // case ({ldacn, clrn, resetn})      
+   end
+
+   // final vout ground/tristate (represented by 'z')
+   always @(opgnd or dactri) begin
+      if (opgnd || dactri) vout = 18'dz;
+      else vout = vout_r;
+   end
 
 endmodule // ad5781_model
 `endif //  `ifndef _AD5781_MODEL_
-
