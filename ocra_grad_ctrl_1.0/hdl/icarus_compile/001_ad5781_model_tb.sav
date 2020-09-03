@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Thu Sep  3 09:02:30 2020
+[*] Thu Sep  3 10:13:53 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ad5781_model_tb.lxt"
-[dumpfile_mtime] "Thu Sep  3 09:02:27 2020"
-[dumpfile_size] 938
+[dumpfile_mtime] "Thu Sep  3 10:13:50 2020"
+[dumpfile_size] 1488
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ad5781_model_tb.sav"
-[timestart] 1161
+[timestart] 2804
 [size] 1920 1025
 [pos] -1 -1
-*-6.057858 1277 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-5.399549 2918 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ad5781_model_tb.
 [sst_width] 230
 [signals_width] 242
@@ -49,6 +49,9 @@ ad5781_model_tb.UUT.dac_reg[23:0]
 ad5781_model_tb.UUT.ctrl_reg[23:0]
 ad5781_model_tb.UUT.clearcode_reg[23:0]
 ad5781_model_tb.UUT.soft_ctrl_reg[23:0]
+@29
+ad5781_model_tb.UUT.ctrl[2:0]
+@22
 ad5781_model_tb.UUT.vout_r[17:0]
 @200
 -

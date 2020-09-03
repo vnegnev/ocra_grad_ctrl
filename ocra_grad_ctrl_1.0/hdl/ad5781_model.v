@@ -36,10 +36,10 @@ module ad5781_model(
 		    output reg [17:0] vout // 
 		    );
 
-   reg [23:0] 			  dac_reg, ctrl_reg, clearcode_reg, soft_ctrl_reg;
+   reg [23:0] 			  dac_reg = 0, ctrl_reg = 0, clearcode_reg = 0, soft_ctrl_reg = 0;
    wire 			  rbuf = ctrl_reg[1], opgnd = ctrl_reg[2], 
 				  dactri = ctrl_reg[3], bin2sc = ctrl_reg[4], sdodis = ctrl_reg[5];
-   reg [23:0] 			  spi_input;
+   reg [23:0] 			  spi_input = 0;
    reg [17:0] 			  vout_r;
    wire [2:0] 			  spi_addr = spi_input[22:20];
    reg [5:0] 			  spi_counter = 0;
@@ -79,9 +79,15 @@ module ad5781_model(
    // steady-state values are used (e.g. if the table says 'falling
    // edge, 0, 1', I have interpreted the final state to be 0, 0,
    // 1). resetn behaviour is implemented by the sequential always
-   // block above.
+   // block above. 
+   // 
+   // WARNING: ldacn behaviour when clrn is low doesn't match
+   // datasheet; e.g. if ldacn is kept high then clrn still has a
+   // premature effect of updating the DAC output. This isn't the mode
+   // in which ocra runs the DAC though, so it shouldn't be relevant
+   // for now. A more accurate model will require some extra logic.
    wire [2:0] ctrl = {ldacn, clrn, resetn};
-   always @(ctrl) begin
+   always @(ctrl or dac_reg) begin
       case (ctrl)
 	3'b001: vout_r = clearcode_reg[19:2];
 	3'b011: vout_r = dac_reg[19:2];

@@ -50,7 +50,7 @@ module ad5781_model_tb;
       $dumpvars(0, ad5781_model_tb);
 
       clrn = 0;
-      ldacn = 0;
+      ldacn = 1;
       resetn = 0;
       sclk = 0;
       sdin = 0;
@@ -86,8 +86,8 @@ module ad5781_model_tb;
       end
       #20 syncn = 1;
 
-      #20 ldacn = 1;
       #20 ldacn = 0;
+      #20 ldacn = 1;
       // check DAC output word is as expected      
       if (vout != 18'h3dead) begin
 	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 18'h3dead, vout);
@@ -104,13 +104,34 @@ module ad5781_model_tb;
       end
       #20 syncn = 1;
 
-      #20 ldacn = 1;
       #20 ldacn = 0;
+      #20 ldacn = 1;
       // check DAC output word is as expected      
       if (vout != 18'h1cafe) begin
 	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 18'h1cafe, vout);
 	 err <= 1;
-      end      
+      end
+
+      // DAC output, different value - hold LDAC low the whole time
+      // DAC output, different value
+      #200 word_to_send = {1'b0, 3'b001, {18'h2beef}, 2'b00};
+      ldacn = 0;
+      #20 syncn = 0;
+      for (k = 23; k >= 0; k = k - 1) begin
+	 #10 sclk = 1;
+	 sdin = word_to_send[k];
+	 #10 sclk = 0;
+      end
+      #20 syncn = 1;
+      #20 syncn = 0;
+
+      // check DAC output word is as expected      
+      if (vout != 18'h2beef) begin
+	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 18'h2beef, vout);
+	 err <= 1;
+      end
+
+      #20 ldacn = 1;      
       
       #1000 if (err) begin
 	 $display("THERE WERE ERRORS");
