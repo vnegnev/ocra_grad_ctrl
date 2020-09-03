@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Title         : ad5781_model
-// Project       : sdf
+// Project       : OCRA
 //-----------------------------------------------------------------------------
 // File          : ad5781_model.v
 // Author        :   <vlad@arch-ssd>
@@ -41,12 +41,12 @@ module ad5781_model(
 				  dactri = ctrl_reg[3], bin2sc = ctrl_reg[4], sdodis = ctrl_reg[5];
    reg [23:0] 			  spi_input;
    reg [17:0] 			  vout_r;
-   wire [2:0] 			  spi_addr = spi_input[23:21];
+   wire [2:0] 			  spi_addr = spi_input[22:20];
    reg [5:0] 			  spi_counter = 0;
    reg 				  read_mode = 0; // TODO: implement readback mode in FSM
-   wire 			  spi_transfer_done = spi_counter == 23;
+   wire 			  spi_transfer_done = spi_counter == 24;
 
-   always @(negedge sclk or negedge resetn) begin
+   always @(negedge sclk or negedge resetn or posedge syncn) begin
       if (!resetn) begin
 	 dac_reg <= 0;
 	 ctrl_reg <= 0;
@@ -93,7 +93,7 @@ module ad5781_model(
    end
 
    // final vout ground/tristate (represented by 'z')
-   always @(opgnd or dactri) begin
+   always @(opgnd or dactri or vout_r) begin
       if (opgnd || dactri) vout = 18'dz;
       else vout = vout_r;
    end

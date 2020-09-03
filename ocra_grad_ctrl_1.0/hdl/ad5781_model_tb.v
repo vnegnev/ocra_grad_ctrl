@@ -42,6 +42,7 @@ module ad5781_model_tb;
    // End of automatics
 
    reg [23:0] 		word_to_send;
+   reg 			err = 0;
    integer 		k;
    
    initial begin
@@ -58,6 +59,7 @@ module ad5781_model_tb;
       // take the DAC out of reset
       #100 resetn = 1;
       #100 syncn = 1;
+      #100 clrn = 1;
 
       // control
       word_to_send = {1'b0, 3'b010, {20'b000010}};
@@ -67,7 +69,12 @@ module ad5781_model_tb;
 	 sdin = word_to_send[k];
 	 #10 sclk = 0;
       end
-      #20 syncn = 1;
+      #40 syncn = 1;
+      // check DAC output word is as expected
+      #10 if (vout != 0) begin
+	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 0, vout);
+	 err <= 1;
+      end
 
       // DAC output
       word_to_send = {1'b0, 3'b001, {18'h3dead}, 2'b00};
@@ -81,8 +88,35 @@ module ad5781_model_tb;
 
       #20 ldacn = 1;
       #20 ldacn = 0;
+      // check DAC output word is as expected      
+      if (vout != 18'h3dead) begin
+	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 18'h3dead, vout);
+	 err <= 1;
+      end
+
+      // DAC output, different value
+      #200 word_to_send = {1'b0, 3'b001, {18'h1cafe}, 2'b00};
+      #20 syncn = 0;
+      for (k = 23; k >= 0; k = k - 1) begin
+	 #10 sclk = 1;
+	 sdin = word_to_send[k];
+	 #10 sclk = 0;
+      end
+      #20 syncn = 1;
+
+      #20 ldacn = 1;
+      #20 ldacn = 0;
+      // check DAC output word is as expected      
+      if (vout != 18'h1cafe) begin
+	 $display("%d ns: Unexpected DAC output, expected %x, saw %x.", $time, 18'h1cafe, vout);
+	 err <= 1;
+      end      
       
-      #1000 $finish;
+      #1000 if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
    end
    
    ad5781_model UUT(/*autoinst*/
