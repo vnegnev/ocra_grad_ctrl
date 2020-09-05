@@ -26,15 +26,67 @@
  `timescale 1ns/1ns
 
 module ocra1_model(
-		   input clk,
-		   input syncn,
-		   input ldacn,
-		   input sdox,
-		   input sdoy,
-		   input sdoz,
-		   input sdoz2
+		   input 	 clk,
+		   input 	 syncn,
+		   input 	 ldacn,
+		   input 	 sdox,
+		   input 	 sdoy,
+		   input 	 sdoz,
+		   input 	 sdoz2,
+
+		   output [17:0] voutx, vouty, voutz, voutz2
 		   );
 
+   reg 				 clrn = 1, resetn = 1;
+   
+   ad5781_model DACX(
+		     // Outputs
+		     .sdo		(),
+		     .vout		(voutx),
+		     // Inputs
+		     .sdin		(sdox),
+		     .sclk		(clk),
+		     .syncn		(syncn),
+		     .ldacn		(ldacn),
+		     .clrn		(clrn),
+		     .resetn		(resetn));
+
+   ad5781_model DACY(
+		     // Outputs
+		     .sdo		(),
+		     .vout		(vouty),
+		     // Inputs
+		     .sdin		(sdoy),
+		     .sclk		(clk),
+		     .syncn		(syncn),
+		     .ldacn		(ldacn),
+		     .clrn		(clrn),
+		     .resetn		(resetn)); // not connected to RP by OCRA1 board
+
+   ad5781_model DACZ(
+		     // Outputs
+		     .sdo		(),
+		     .vout		(voutz),
+		     // Inputs
+		     .sdin		(sdoz),
+		     .sclk		(clk),
+		     .syncn		(syncn),
+		     .ldacn		(ldacn),
+		     .clrn		(clrn),
+		     .resetn		(resetn));
+   
+
+   ad5781_model DACZ2(
+		     // Outputs
+		     .sdo		(),
+		     .vout		(voutz2),
+		     // Inputs
+		     .sdin		(sdoz2),
+		     .sclk		(clk),
+		     .syncn		(syncn),
+		     .ldacn		(ldacn),
+		     .clrn		(clrn),
+		     .resetn		(resetn));
 
 endmodule // ocra1_model
 `endif //  `ifndef _OCRA1_MODEL_

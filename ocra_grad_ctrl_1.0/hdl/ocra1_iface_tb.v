@@ -24,14 +24,11 @@
  `define _OCRA1_IFACE_TB_
 
  `include "ocra1_iface.v"
- `include "ad5781_model.v"
+ `include "ocra1_model.v"
 
  `timescale 1ns/1ns
 
 module ocra1_iface_tb;
-
-   reg oc1_clrn = 1,  // not connected in the current ocra firmware, though it could be
-       oc1_resetn = 1; // not connected to RP by OCRA1 board
    
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
@@ -46,16 +43,18 @@ module ocra1_iface_tb;
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
    wire			busy_o;			// From UUT of ocra1_iface.v
-   wire			oc1_clk_o;		// From UUT of ocra1_iface.v
-   wire			oc1_ldacn_o;		// From UUT of ocra1_iface.v
-   wire			oc1_sdox_o;		// From UUT of ocra1_iface.v
-   wire			oc1_sdoy_o;		// From UUT of ocra1_iface.v
-   wire			oc1_sdoz2_o;		// From UUT of ocra1_iface.v
-   wire			oc1_sdoz_o;		// From UUT of ocra1_iface.v
-   wire			oc1_syncn_o;		// From UUT of ocra1_iface.v
+   wire			ldacn;			// From UUT of ocra1_iface.v
+   wire			sclk;			// From UUT of ocra1_iface.v
+   wire			sdox;			// From UUT of ocra1_iface.v
+   wire			sdoy;			// From UUT of ocra1_iface.v
+   wire			sdoz;			// From UUT of ocra1_iface.v
+   wire			sdoz2;			// From UUT of ocra1_iface.v
+   wire			syncn;			// From UUT of ocra1_iface.v
+   wire [17:0]		voutx;			// From OCRA1 of ocra1_model.v
+   wire [17:0]		vouty;			// From OCRA1 of ocra1_model.v
+   wire [17:0]		voutz;			// From OCRA1 of ocra1_model.v
+   wire [17:0]		voutz2;			// From OCRA1 of ocra1_model.v
    // End of automatics
-
-   wire [17:0] 		oc1_voutx, oc1_vouty, oc1_voutz, oc1_voutz2;
 
    initial begin
       $dumpfile("icarus_compile/000_ocra1_iface_tb.lxt");
@@ -86,15 +85,17 @@ module ocra1_iface_tb;
 
    always #5 clk = !clk;
 
-   ocra1_iface UUT(/*AUTOINST*/
+   ocra1_iface UUT(
 		   // Outputs
-		   .oc1_clk_o		(oc1_clk_o),
-		   .oc1_syncn_o		(oc1_syncn_o),
-		   .oc1_ldacn_o		(oc1_ldacn_o),
-		   .oc1_sdox_o		(oc1_sdox_o),
-		   .oc1_sdoy_o		(oc1_sdoy_o),
-		   .oc1_sdoz_o		(oc1_sdoz_o),
-		   .oc1_sdoz2_o		(oc1_sdoz2_o),
+		   .oc1_clk_o		(sclk),
+		   .oc1_syncn_o		(syncn),
+		   .oc1_ldacn_o		(ldacn),
+		   .oc1_sdox_o		(sdox),
+		   .oc1_sdoy_o		(sdoy),
+		   .oc1_sdoz_o		(sdoz),
+		   .oc1_sdoz2_o		(sdoz2),
+		   /*AUTOINST*/
+		   // Outputs
 		   .busy_o		(busy_o),
 		   // Inputs
 		   .clk			(clk),
@@ -104,55 +105,21 @@ module ocra1_iface_tb;
 		   .dataz2_i		(dataz2_i[23:0]),
 		   .valid_i		(valid_i));
 
-   ad5781_model DACX(
+   ocra1_model OCRA1(
+		     .clk		(sclk),
+		     /*AUTOINST*/
 		     // Outputs
-		     .sdo		(),
-		     .vout		(oc1_voutx),
+		     .voutx		(voutx[17:0]),
+		     .vouty		(vouty[17:0]),
+		     .voutz		(voutz[17:0]),
+		     .voutz2		(voutz2[17:0]),
 		     // Inputs
-		     .sdin		(oc1_sdox_o),
-		     .sclk		(oc1_clk_o),
-		     .syncn		(oc1_syncn_o),
-		     .ldacn		(oc1_ldacn_o),
-		     .clrn		(oc1_clrn),
-		     .resetn		(oc1_resetn));
-
-   ad5781_model DACY(
-		     // Outputs
-		     .sdo		(),
-		     .vout		(oc1_vouty),
-		     // Inputs
-		     .sdin		(oc1_sdoy_o),
-		     .sclk		(oc1_clk_o),
-		     .syncn		(oc1_syncn_o),
-		     .ldacn		(oc1_ldacn_o),
-		     .clrn		(oc1_clrn),
-		     .resetn		(oc1_resetn)); // not connected to RP by OCRA1 board
-
-   ad5781_model DACZ(
-		     // Outputs
-		     .sdo		(),
-		     .vout		(oc1_voutz),
-		     // Inputs
-		     .sdin		(oc1_sdoz_o),
-		     .sclk		(oc1_clk_o),
-		     .syncn		(oc1_syncn_o),
-		     .ldacn		(oc1_ldacn_o),
-		     .clrn		(oc1_clrn),
-		     .resetn		(oc1_resetn));
-   
-   ad5781_model DACZ2(
-		     // Outputs
-		     .sdo		(),
-		     .vout		(oc1_voutz2),
-		     // Inputs
-		     .sdin		(oc1_sdoz2_o),
-		     .sclk		(oc1_clk_o),
-		     .syncn		(oc1_syncn_o),
-		     .ldacn		(oc1_ldacn_o),
-		     .clrn		(oc1_clrn),
-		     .resetn		(oc1_resetn));
-
+		     .syncn		(syncn),
+		     .ldacn		(ldacn),
+		     .sdox		(sdox),
+		     .sdoy		(sdoy),
+		     .sdoz		(sdoz),
+		     .sdoz2		(sdoz2));
 
 endmodule // ocra1_iface_tb
 `endif //  `ifndef _OCRA1_IFACE_TB_
-
