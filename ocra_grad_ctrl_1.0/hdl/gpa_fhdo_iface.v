@@ -41,7 +41,7 @@ module gpa_fhdo_iface(
 		   // GPA-FHDO interface
 		   output reg 	fhd_clk_o,
 		   output reg 	fhd_sdo_o,
-		   output reg 	fhd_ssn_o,
+		   output reg 	fhd_csn_o,
 		   input 	fhd_sdi_i, // not used yet, but will add an SPI readback feature later
 
 		   output reg 	busy_o // should be held high while module is carrying out an SPI transfer
