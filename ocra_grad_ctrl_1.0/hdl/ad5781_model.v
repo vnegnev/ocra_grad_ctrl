@@ -44,7 +44,7 @@ module ad5781_model(
    wire [2:0] 			  spi_addr = spi_input[22:20];
    reg [5:0] 			  spi_counter = 0;
    reg 				  read_mode = 0; // TODO: implement readback mode in FSM
-   wire 			  spi_transfer_done = spi_counter == 24;
+   wire 			  spi_transfer_done = spi_counter == 24; // expects exactly 24 bits, more will be rejected
 
    always @(negedge sclk or negedge resetn or posedge syncn) begin
       if (!resetn) begin
