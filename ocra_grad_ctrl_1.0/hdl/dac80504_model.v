@@ -56,6 +56,7 @@ module dac80504_model(
 	 spi_counter <= 0;
 	 spi_input <= 0;
 	 if (spi_transfer_done && !read_mode) begin
+		$display("addr %d payload %d",spi_addr,spi_payload);
 	    case(spi_addr)
 	      4'b0010: sync_reg = spi_payload;
 	      4'b0011: config_reg = spi_payload;
@@ -90,7 +91,7 @@ module dac80504_model(
       if (!dac_sync_en[1] && csn) vout1 = dac1_reg;
 
       if (dac_sync_en[0] && ldacn) vout0 = dac0_reg;
-      if (!dac_sync_en[0] && csn) vout0 = dac0_reg;
+      if (!dac_sync_en[0] && csn)  vout0 = dac0_reg;
    end
    
 endmodule // dac80504_model

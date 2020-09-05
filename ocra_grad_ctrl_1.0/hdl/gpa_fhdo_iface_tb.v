@@ -62,9 +62,9 @@ module gpa_fhdo_iface_tb;
       valid_i = 0;
 
       #100 send(1,2,3,4);
-      #1000 send(5,6,7,8);
+      #2000 send(5,6,7,8);
 
-      #1000 $finish;
+      #2000 $finish;
    end // initial begin
 
    task send; // send data to GPA-FHDO interface core
