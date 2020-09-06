@@ -1,19 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sat Sep  5 14:59:04 2020
+[*] Sun Sep  6 11:18:57 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra1_iface_tb.lxt"
-[dumpfile_mtime] "Sat Sep  5 14:58:39 2020"
-[dumpfile_size] 1930
+[dumpfile_mtime] "Sun Sep  6 11:18:47 2020"
+[dumpfile_size] 27217
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra1_iface_tb.sav"
 [timestart] 0
-[size] 1000 600
+[size] 1631 846
 [pos] -1 -1
-*-10.000000 307 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-13.138706 900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] ocra1_iface_tb.
+[treeopen] ocra1_iface_tb.OCRA1.
 [sst_width] 230
-[signals_width] 142
+[signals_width] 256
 [sst_expanded] 1
-[sst_vpaned_height] 144
+[sst_vpaned_height] 228
 @28
 ocra1_iface_tb.clk[0]
 @22
@@ -30,5 +32,36 @@ ocra1_iface_tb.voutx[17:0]
 ocra1_iface_tb.vouty[17:0]
 ocra1_iface_tb.voutz[17:0]
 ocra1_iface_tb.voutz2[17:0]
+@200
+-
+-SPI I/O
+@28
+ocra1_iface_tb.ldacn[0]
+ocra1_iface_tb.sclk[0]
+ocra1_iface_tb.sdox[0]
+ocra1_iface_tb.sdoy[0]
+ocra1_iface_tb.sdoz[0]
+ocra1_iface_tb.sdoz2[0]
+ocra1_iface_tb.syncn[0]
+@200
+-
+-iface internals
+@24
+ocra1_iface_tb.UUT.state[5:0]
+@200
+-
+-ocra1 internals
+@28
+ocra1_iface_tb.OCRA1.syncn[0]
+ocra1_iface_tb.OCRA1.ldacn[0]
+ocra1_iface_tb.OCRA1.DACX.sclk[0]
+@22
+ocra1_iface_tb.OCRA1.DACX.ctrl_reg[23:0]
+@25
+ocra1_iface_tb.OCRA1.DACX.spi_counter[5:0]
+@22
+ocra1_iface_tb.OCRA1.DACX.spi_input[23:0]
+@28
+ocra1_iface_tb.OCRA1.DACX.spi_transfer_done[0]
 [pattern_trace] 1
 [pattern_trace] 0

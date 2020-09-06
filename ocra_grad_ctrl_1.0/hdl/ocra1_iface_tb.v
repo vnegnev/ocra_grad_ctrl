@@ -55,7 +55,7 @@ module ocra1_iface_tb;
    wire [17:0]		voutz;			// From OCRA1 of ocra1_model.v
    wire [17:0]		voutz2;			// From OCRA1 of ocra1_model.v
    // End of automatics
-
+   
    initial begin
       $dumpfile("icarus_compile/000_ocra1_iface_tb.lxt");
       $dumpvars(0, ocra1_iface_tb);
@@ -68,10 +68,12 @@ module ocra1_iface_tb;
       dataz2_i = 0;
       valid_i = 0;
 
-      #100 send(1,2,3,4);
-      #1000 send(5,6,7,8);
+      #100 send(24'h200002, 24'h200002, 24'h200002, 24'h200002); // initialise all DACs
+      #10000 sendV(1,2,3,4);
+      #10000 sendV(5,6,7,8);
+      #10000 sendV(-1,-2,-3,-4);      
 
-      #1000 $finish;
+      #10000 $finish;
    end // initial begin
 
    task send; // send data to OCRA1 interface core
@@ -81,9 +83,16 @@ module ocra1_iface_tb;
 	 #10 datax_i = inx; datay_i = iny; dataz_i = inz; dataz2_i = inz2; valid_i = 1;
 	 #10 valid_i = 0;
       end
-   endtask // send   
+   endtask // send
 
-   always #5 clk = !clk;
+   task sendV; // send DAC voltage data to OCRA1 interface core
+      input [17:0] inx, iny, inz, inz2;
+      begin
+	 send({4'h1, inx, 2'd0}, {4'h1, iny, 2'd0}, {4'h1, inz, 2'd0}, {4'h1, inz2, 2'd0});
+      end
+   endtask
+
+   always #4 clk = !clk; // 125 MHz clock
 
    ocra1_iface UUT(
 		   // Outputs
