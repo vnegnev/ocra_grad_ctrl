@@ -1,11 +1,36 @@
-// This module will later contain the memory-mapped gradient BRAMs and the data-output FSM
+//-----------------------------------------------------------------------------
+// Title         : grad_bram
+// Project       : ocra
+//-----------------------------------------------------------------------------
+// File          : grad_bram.v
+// Author        :   <vlad@arch-ssd>
+// Created       : 06.09.2020
+// Last modified : 06.09.2020
+//-----------------------------------------------------------------------------
+// Description :
+//
+// Gradient BRAM and output data FSM.  Local memory space: 64K. Lower
+// 32K: control regs (addresses 0 - 8). Upper 32K: BRAM address
+// space (depending on BRAM size selected). 32b addressability
+// (addresses aligned to 4B)
+//
+//-----------------------------------------------------------------------------
+// Copyright (c) 2020 by OCRA developers This model is the confidential and
+// proprietary property of OCRA developers and the possession or use of this
+// file requires a written license from OCRA developers.
+//------------------------------------------------------------------------------
+// Modification history :
+// 06.09.2020 : created
+//-----------------------------------------------------------------------------
 
-`ifndef _OCRA_GRAD_CTRL_S00_AXI_
- `define _OCRA_GRAD_CTRL_S00_AXI_
+
+
+`ifndef _GRAD_BRAM_
+ `define _GRAD_BRAM_
 
  `timescale 1ns / 1ns
 
-module ocra_grad_ctrl_S00_AXI #
+module grad_bram #
   (
    // Users to add parameters here
 
@@ -15,10 +40,11 @@ module ocra_grad_ctrl_S00_AXI #
    // Width of S_AXI data bus
    parameter integer C_S_AXI_DATA_WIDTH = 32,
    // Width of S_AXI address bus
-   parameter integer C_S_AXI_ADDR_WIDTH = 14
+   parameter integer C_S_AXI_ADDR_WIDTH = 16
    )
    (
     // Users to add ports here
+    
 
     // User ports ends
     // Do not modify the ports beyond this line
@@ -103,7 +129,7 @@ module ocra_grad_ctrl_S00_AXI #
    // ADDR_LSB = 2 for 32 bits (n downto 2)
    // ADDR_LSB = 3 for 64 bits (n downto 3)
    localparam integer 			      ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-   localparam integer 			      OPT_MEM_ADDR_BITS = 2;
+   localparam integer 			      OPT_MEM_ADDR_BITS = C_S_AXI_ADDR_WIDTH - ADDR_LSB - 1;
    //----------------------------------------------
    //-- Signals for user logic register space example
    //------------------------------------------------
@@ -204,89 +230,125 @@ module ocra_grad_ctrl_S00_AXI #
    // and the slave is ready to accept the write address and write data.
    assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 
-   always @( posedge S_AXI_ACLK ) begin
-      if ( S_AXI_ARESETN == 1'b0 ) begin
-	 slv_reg0 <= 0;
-	 slv_reg1 <= 0;
-	 slv_reg2 <= 0;
-	 slv_reg3 <= 0;
-	 slv_reg4 <= 0;
-	 slv_reg5 <= 0;
-	 slv_reg6 <= 0;
-	 slv_reg7 <= 0;
-      end else begin
-	 if (slv_reg_wren) begin
-	    case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	      3'h0:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 0
-	             slv_reg0[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h1:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 1
-	             slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h2:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 2
-	             slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h3:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 3
-	             slv_reg3[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h4:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 4
-	             slv_reg4[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h5:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 5
-	             slv_reg5[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h6:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 6
-	             slv_reg6[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      3'h7:
-	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	             // Respective byte enables are asserted as per write strobes 
-	             // Slave register 7
-	             slv_reg7[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	          end  
-	      default : begin
-	         slv_reg0 <= slv_reg0;
-	         slv_reg1 <= slv_reg1;
-	         slv_reg2 <= slv_reg2;
-	         slv_reg3 <= slv_reg3;
-	         slv_reg4 <= slv_reg4;
-	         slv_reg5 <= slv_reg5;
-	         slv_reg6 <= slv_reg6;
-	         slv_reg7 <= slv_reg7;
-	      end
-	    endcase
+   reg [31:0] grad_bram [2**(OPT_MEM_ADDR_BITS-1)-1:0];
+   reg [31:0] grad_bram_wdata = 0, grad_bram_wdata_r = 0; // pipelining
+   reg 	      grad_bram_wren = 0, grad_bram_wren_r = 0, grad_bram_rd = 0, grad_bram_rd_r1 = 0, grad_bram_rd_r2 = 0; // pipelining
+   reg [OPT_MEM_ADDR_BITS-2:0] grad_bram_wraddr = 0, grad_bram_wraddr_r = 0, grad_bram_rdaddr = 0, grad_bram_rdaddr_r1 = 0, grad_bram_rdaddr_r2 = 0; // pipelining
+   
+   wire [OPT_MEM_ADDR_BITS-1:0] axi_addr = axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS : ADDR_LSB];
+   always @(posedge S_AXI_ACLK) begin
+      // defaults and pipelining
+      grad_bram_wren <= 0;
+      grad_bram_wren_r <= grad_bram_wren;
+      grad_bram_wraddr_r <= grad_bram_wraddr;
+      grad_bram_wdata_r <= grad_bram_wdata;
+      grad_bram_rd <= 0;
+      {grad_bram_rd_r2, grad_bram_rd_r1} <= {grad_bram_rd_r1, grad_bram_rd};
+      {grad_bram_rdaddr_r2, grad_bram_rdaddr_r1} <= {grad_bram_rdaddr_r1, grad_bram_rdaddr};
+
+      if (grad_bram_wren_r) grad_bram[grad_bram_wraddr_r] <= grad_bram_wdata_r;
+      
+      if (slv_reg_wren) begin
+	 if (axi_addr[OPT_MEM_ADDR_BITS-1]) begin // write to BRAM
+	    grad_bram_wren <= 1;
+	    grad_bram_wraddr <= axi_addr[OPT_MEM_ADDR_BITS-2:0]; // TODO check widths
+	    grad_bram_wdata <= S_AXI_WDATA;
+	 end else begin // write to config register
+	    case (axi_addr[2:0])
+	      // no resets
+	      2'd0: slv_reg0 <= S_AXI_WDATA;
+	      2'd1: slv_reg1 <= S_AXI_WDATA;
+	      2'd2: slv_reg2 <= S_AXI_WDATA;
+	      2'd3: slv_reg3 <= S_AXI_WDATA;
+	    endcase // case (axi_addr[1:0])
 	 end
       end
-   end    
+   end   
+   
+   // VN: below left in for reference, but won't be used in its current form
+   // always @( posedge S_AXI_ACLK ) begin
+   //    if ( S_AXI_ARESETN == 1'b0 ) begin
+   // 	 slv_reg0 <= 0;
+   // 	 slv_reg1 <= 0;
+   // 	 slv_reg2 <= 0;
+   // 	 slv_reg3 <= 0;
+   // 	 slv_reg4 <= 0;
+   // 	 slv_reg5 <= 0;
+   // 	 slv_reg6 <= 0;
+   // 	 slv_reg7 <= 0;
+   //    end else begin
+   // 	 if (slv_reg_wren) begin
+   // 	    case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+   // 	      3'h0:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 0
+   // 	             slv_reg0[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h1:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 1
+   // 	             slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h2:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 2
+   // 	             slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h3:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 3
+   // 	             slv_reg3[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h4:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 4
+   // 	             slv_reg4[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h5:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 5
+   // 	             slv_reg5[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h6:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 6
+   // 	             slv_reg6[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end  
+   // 	      3'h7:
+   // 	        for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+   // 	          if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+   // 	             // Respective byte enables are asserted as per write strobes 
+   // 	             // Slave register 7
+   // 	             slv_reg7[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+   // 	          end
+   // 	      default : begin
+   // 	         slv_reg0 <= slv_reg0;
+   // 	         slv_reg1 <= slv_reg1;
+   // 	         slv_reg2 <= slv_reg2;
+   // 	         slv_reg3 <= slv_reg3;
+   // 	         slv_reg4 <= slv_reg4;
+   // 	         slv_reg5 <= slv_reg5;
+   // 	         slv_reg6 <= slv_reg6;
+   // 	         slv_reg7 <= slv_reg7;
+   // 	      end
+   // 	    endcase
+   // 	 end
+   //    end
+   // end
 
    // Implement write response logic generation
    // The write response and response valid signals are asserted by the slave 
@@ -397,4 +459,4 @@ module ocra_grad_ctrl_S00_AXI #
    // User logic ends
 
 endmodule
-`endif //  `ifndef _OCRA_GRAD_CTRL_S00_AXI_
+`endif //  `ifndef _GRAD_BRAM_

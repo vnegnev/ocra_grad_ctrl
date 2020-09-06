@@ -143,6 +143,9 @@ module ocra_grad_ctrl_tb;
       s_axi_intr_arvalid = 0;
       s_axi_intr_rready = 0;
 
+      #100 rst_n = 1;
+      #100 wr32(0, 32'hdeadbeef);
+
       #1000 $finish;
    end
 
@@ -152,6 +155,7 @@ module ocra_grad_ctrl_tb;
       input [31:0] data;
       begin
          #10 s00_axi_wdata = data;
+	 s00_axi_wstrb = 'hf;
          s00_axi_awaddr = addr;
          s00_axi_awvalid = 1;
          s00_axi_wvalid = 1;
