@@ -9,17 +9,17 @@
 //-----------------------------------------------------------------------------
 // Description :
 // Top-level core file
-//-----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 // See LICENSE for GPL licensing information
-//------------------------------------------------------------------------------
-// Modification history :
-// 31.08.2020 : created
-//-----------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+// Modification history : 31.08.2020 : created
+// -----------------------------------------------------------------------------
 
 `ifndef _OCRA_GRAD_CTRL_
  `define _OCRA_GRAD_CTRL_
 
- `include "ocra_grad_ctrl_S00_AXI.v"
+ `include "grad_bram.v"
  `include "ocra_grad_ctrl_S_AXI_INTR.v"
 
  `timescale 1ns / 1ns
@@ -49,7 +49,7 @@ module ocra_grad_ctrl #
     output 				      fhd_sdo_o, // data out
     output 				      fhd_ssn_o, // SPI CS
     input 				      fhd_sdi_i, // data in
-    
+   
     // User ports ends
     // Do not modify the ports beyond this line
 
@@ -104,7 +104,7 @@ module ocra_grad_ctrl #
    // VN: I've made all these localparams, since they're seldom going to be modified by us
    // Parameters of Axi Slave Bus Interface S00_AXI
    localparam integer 			      C_S00_AXI_DATA_WIDTH = 32;
-   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 14;
+   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 16;
 
    // Localparams of Axi Slave Bus Interface S_AXI_INTR
    localparam integer 			      C_S_AXI_INTR_DATA_WIDTH = 32;
@@ -116,66 +116,72 @@ module ocra_grad_ctrl #
    localparam integer 			      C_IRQ_ACTIVE_STATE = 1;
    
    // Instantiation of Axi Bus Interface S00_AXI
-   ocra_grad_ctrl_S00_AXI # ( 
-				   .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
-				   .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-				   ) ocra_grad_ctrl_S00_AXI_inst (
-								       .S_AXI_ACLK(s00_axi_aclk),
-								       .S_AXI_ARESETN(s00_axi_aresetn),
-								       .S_AXI_AWADDR(s00_axi_awaddr),
-								       .S_AXI_AWPROT(s00_axi_awprot),
-								       .S_AXI_AWVALID(s00_axi_awvalid),
-								       .S_AXI_AWREADY(s00_axi_awready),
-								       .S_AXI_WDATA(s00_axi_wdata),
-								       .S_AXI_WSTRB(s00_axi_wstrb),
-								       .S_AXI_WVALID(s00_axi_wvalid),
-								       .S_AXI_WREADY(s00_axi_wready),
-								       .S_AXI_BRESP(s00_axi_bresp),
-								       .S_AXI_BVALID(s00_axi_bvalid),
-								       .S_AXI_BREADY(s00_axi_bready),
-								       .S_AXI_ARADDR(s00_axi_araddr),
-								       .S_AXI_ARPROT(s00_axi_arprot),
-								       .S_AXI_ARVALID(s00_axi_arvalid),
-								       .S_AXI_ARREADY(s00_axi_arready),
-								       .S_AXI_RDATA(s00_axi_rdata),
-								       .S_AXI_RRESP(s00_axi_rresp),
-								       .S_AXI_RVALID(s00_axi_rvalid),
-								       .S_AXI_RREADY(s00_axi_rready)
-								       );
+   grad_bram # ( 
+		 .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
+		 .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
+		 ) grad_bram_inst (
+				   .S_AXI_ACLK(s00_axi_aclk),
+				   .S_AXI_ARESETN(s00_axi_aresetn),
+				   .S_AXI_AWADDR(s00_axi_awaddr),
+				   .S_AXI_AWPROT(s00_axi_awprot),
+				   .S_AXI_AWVALID(s00_axi_awvalid),
+				   .S_AXI_AWREADY(s00_axi_awready),
+				   .S_AXI_WDATA(s00_axi_wdata),
+				   .S_AXI_WSTRB(s00_axi_wstrb),
+				   .S_AXI_WVALID(s00_axi_wvalid),
+				   .S_AXI_WREADY(s00_axi_wready),
+				   .S_AXI_BRESP(s00_axi_bresp),
+				   .S_AXI_BVALID(s00_axi_bvalid),
+				   .S_AXI_BREADY(s00_axi_bready),
+				   .S_AXI_ARADDR(s00_axi_araddr),
+				   .S_AXI_ARPROT(s00_axi_arprot),
+				   .S_AXI_ARVALID(s00_axi_arvalid),
+				   .S_AXI_ARREADY(s00_axi_arready),
+				   .S_AXI_RDATA(s00_axi_rdata),
+				   .S_AXI_RRESP(s00_axi_rresp),
+				   .S_AXI_RVALID(s00_axi_rvalid),
+				   .S_AXI_RREADY(s00_axi_rready),
+
+				   .offset_i(16'd0),
+				   .data_enb_i(1'd0),
+				   .serial_busy_i(1'd0),
+				   .data_o(),
+				   .valid_o()
+				   );
 
    // Instantiation of Axi Bus Interface S_AXI_INTR
    ocra_grad_ctrl_S_AXI_INTR # ( 
-				      .C_S_AXI_DATA_WIDTH(C_S_AXI_INTR_DATA_WIDTH),
-				      .C_S_AXI_ADDR_WIDTH(C_S_AXI_INTR_ADDR_WIDTH),
-				      .C_NUM_OF_INTR(C_NUM_OF_INTR),
-				      .C_INTR_SENSITIVITY(C_INTR_SENSITIVITY),
-				      .C_INTR_ACTIVE_STATE(C_INTR_ACTIVE_STATE),
-				      .C_IRQ_SENSITIVITY(C_IRQ_SENSITIVITY),
-				      .C_IRQ_ACTIVE_STATE(C_IRQ_ACTIVE_STATE)
-				      ) ocra_grad_ctrl_S_AXI_INTR_inst (
-									     .S_AXI_ACLK(s_axi_intr_aclk),
-									     .S_AXI_ARESETN(s_axi_intr_aresetn),
-									     .S_AXI_AWADDR(s_axi_intr_awaddr),
-									     .S_AXI_AWPROT(s_axi_intr_awprot),
-									     .S_AXI_AWVALID(s_axi_intr_awvalid),
-									     .S_AXI_AWREADY(s_axi_intr_awready),
-									     .S_AXI_WDATA(s_axi_intr_wdata),
-									     .S_AXI_WSTRB(s_axi_intr_wstrb),
-									     .S_AXI_WVALID(s_axi_intr_wvalid),
-									     .S_AXI_WREADY(s_axi_intr_wready),
-									     .S_AXI_BRESP(s_axi_intr_bresp),
-									     .S_AXI_BVALID(s_axi_intr_bvalid),
-									     .S_AXI_BREADY(s_axi_intr_bready),
-									     .S_AXI_ARADDR(s_axi_intr_araddr),
-									     .S_AXI_ARPROT(s_axi_intr_arprot),
-									     .S_AXI_ARVALID(s_axi_intr_arvalid),
-									     .S_AXI_ARREADY(s_axi_intr_arready),
-									     .S_AXI_RDATA(s_axi_intr_rdata),
-									     .S_AXI_RRESP(s_axi_intr_rresp),
-									     .S_AXI_RVALID(s_axi_intr_rvalid),
-									     .S_AXI_RREADY(s_axi_intr_rready),
-									     .irq(irq)
-									     );
+				 .C_S_AXI_DATA_WIDTH(C_S_AXI_INTR_DATA_WIDTH),
+				 .C_S_AXI_ADDR_WIDTH(C_S_AXI_INTR_ADDR_WIDTH),
+				 .C_NUM_OF_INTR(C_NUM_OF_INTR),
+				 .C_INTR_SENSITIVITY(C_INTR_SENSITIVITY),
+				 .C_INTR_ACTIVE_STATE(C_INTR_ACTIVE_STATE),
+				 .C_IRQ_SENSITIVITY(C_IRQ_SENSITIVITY),
+				 .C_IRQ_ACTIVE_STATE(C_IRQ_ACTIVE_STATE)
+				 ) ocra_grad_ctrl_S_AXI_INTR_inst (
+								   .S_AXI_ACLK(s_axi_intr_aclk),
+								   .S_AXI_ARESETN(s_axi_intr_aresetn),
+								   .S_AXI_AWADDR(s_axi_intr_awaddr),
+								   .S_AXI_AWPROT(s_axi_intr_awprot),
+								   .S_AXI_AWVALID(s_axi_intr_awvalid),
+								   .S_AXI_AWREADY(s_axi_intr_awready),
+								   .S_AXI_WDATA(s_axi_intr_wdata),
+								   .S_AXI_WSTRB(s_axi_intr_wstrb),
+								   .S_AXI_WVALID(s_axi_intr_wvalid),
+								   .S_AXI_WREADY(s_axi_intr_wready),
+								   .S_AXI_BRESP(s_axi_intr_bresp),
+								   .S_AXI_BVALID(s_axi_intr_bvalid),
+								   .S_AXI_BREADY(s_axi_intr_bready),
+								   .S_AXI_ARADDR(s_axi_intr_araddr),
+								   .S_AXI_ARPROT(s_axi_intr_arprot),
+								   .S_AXI_ARVALID(s_axi_intr_arvalid),
+								   .S_AXI_ARREADY(s_axi_intr_arready),
+								   .S_AXI_RDATA(s_axi_intr_rdata),
+								   .S_AXI_RRESP(s_axi_intr_rresp),
+								   .S_AXI_RVALID(s_axi_intr_rvalid),
+								   .S_AXI_RREADY(s_axi_intr_rready),
+								   .irq(irq)
+								   );
 
    // Add user logic here
 
