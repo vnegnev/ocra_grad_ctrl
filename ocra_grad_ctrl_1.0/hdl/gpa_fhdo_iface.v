@@ -52,7 +52,7 @@ module gpa_fhdo_iface(
 	wire [3:0] 			spi_addr = spi_output[19:16];
 	reg [5:0] 			spi_counter = 0;
 	
-	parameter			num_transfer = 4;
+	localparam			num_transfer = 4;
 	reg [2:0]			current_transfer = 0;
 	/*
 		nr		data
@@ -63,8 +63,8 @@ module gpa_fhdo_iface(
 		4		dac_channel_3
 	*/
 	
-	parameter			SIZE = 5;
-	parameter 			IDLE = 3'b001,START_SPI = 3'b010,OUTPUT_SPI = 3'b011,END_SPI = 3'b100;
+	localparam			SIZE = 5;
+	localparam 			IDLE = 3'b001,START_SPI = 3'b010,OUTPUT_SPI = 3'b011,END_SPI = 3'b100;
 						
 	reg [SIZE-1:0]			state = IDLE;
 	wire [SIZE-1:0]			next_state;
@@ -119,7 +119,7 @@ module gpa_fhdo_iface(
 
 	// Sequence Logic
    always @(posedge clk) begin
-      if(valid_i == 1) begin
+      if(valid_i) begin
 		current_transfer <= 0;
 		state <= START_SPI;
 	  end 
