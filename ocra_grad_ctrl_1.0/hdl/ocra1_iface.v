@@ -30,13 +30,13 @@ module ocra1_iface(
 		   input 	clk,
 
 		   // data words from gradient memory core
-		   input [23:0] datax_i,
-		   input [23:0] datay_i,
-		   input [23:0] dataz_i,
-		   input [23:0] dataz2_i,
+		   input [31:0] data_i, // bits 26:25: target channel, bit 24: broadcast/transmit, 
 
 		   // data valid flag, should be held high for 1 cycle to initiate a transfer		   
 		   input 	valid_i,
+
+		   // SPI clock divider
+		   input [5:0] 	spi_clk_div_i,
 
 		   // OCRA1 interface (startup values are set here as well)
 		   output reg 	oc1_clk_o = 0,
@@ -52,12 +52,17 @@ module ocra1_iface(
 
    // 122.88 -> 3.84 MHz clock freq - ~150 ksps update rate possible
    // spi_clk_edge_div used for toggling the SPI clock
-   localparam spi_clk_div = 32, spi_clk_edge_div = 16;
+   reg [5:0] 			spi_clk_div_r = 0;
+   wire [4:0] 			spi_clk_edge_div = spi_clk_div_r[5:1]; // divided by 2
 
    localparam IDLE = 25, START = 24, END = 0;
    
    reg [5:0] 			state = IDLE;
    reg [5:0] 			div_ctr = 0;
+   reg 				valid_r = 0;
+   reg [23:0] 			payload_r = 0;
+   reg 				broadcast_r = 0;
+   reg [1:0] 			channel_r = 0;
    reg [23:0] 			datax_r = 0, datay_r = 0, dataz_r = 0, dataz2_r = 0;
    
    always @(posedge clk) begin
@@ -67,6 +72,26 @@ module ocra1_iface(
       oc1_ldacn_o <= 0;
       busy_o <= 1;
 
+      spi_clk_div_r <= spi_clk_div_i;
+
+      // handle input instructions
+      valid_r <= valid_i;
+      broadcast_r <= 0; // default
+      if (valid_i) begin
+	 payload_r <= data_i[23:0];
+	 broadcast_r <= data_i[24];
+	 channel_r <= data_i[26:25];
+      end
+      
+      if (valid_r) begin
+	 case (channel_r)
+	   2'b00: datax_r <= payload_r;
+	   2'b01: datay_r <= payload_r;
+	   2'b10: dataz_r <= payload_r;
+	   default: dataz2_r <= payload_r;
+	 endcase // case (channel_r)
+      end
+      
       // could use a wire, but deliberately adding a clocked register stage to help with timing
       {oc1_sdox_o, oc1_sdoy_o, oc1_sdoz_o, oc1_sdoz2_o} <= {datax_r[23], datay_r[23], dataz_r[23], dataz2_r[23]};
       
@@ -75,8 +100,8 @@ module ocra1_iface(
 	   oc1_syncn_o <= 1;
 	   busy_o <= 0;
 	   state <= IDLE;
-	   if (valid_i) begin
-	      {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_i, datay_i, dataz_i, dataz2_i};
+	   if (broadcast_r) begin
+	      // {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_i, datay_i, dataz_i, dataz2_i};
 	      state <= START;
 	   end
 	end
@@ -87,7 +112,7 @@ module ocra1_iface(
 	default: begin // covers the START state and all the states down to 0	   
 	   oc1_clk_o <= div_ctr < spi_clk_edge_div; //
 	   // divisor logic	  
-	   if (div_ctr == spi_clk_div) begin
+	   if (div_ctr == spi_clk_div_i) begin
 	      div_ctr <= 0;
 	      {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_r << 1, datay_r << 1, dataz_r << 1, dataz2_r << 1};
 	      state <= state - 1; // eventually will hit the END state

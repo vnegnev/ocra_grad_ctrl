@@ -33,10 +33,8 @@ module ocra1_iface_tb;
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
    reg			clk;			// To UUT of ocra1_iface.v
-   reg [23:0]		datax_i;		// To UUT of ocra1_iface.v
-   reg [23:0]		datay_i;		// To UUT of ocra1_iface.v
-   reg [23:0]		dataz2_i;		// To UUT of ocra1_iface.v
-   reg [23:0]		dataz_i;		// To UUT of ocra1_iface.v
+   reg [31:0]		data_i;			// To UUT of ocra1_iface.v
+   reg [5:0]		spi_clk_div_i;		// To UUT of ocra1_iface.v
    reg			valid_i;		// To UUT of ocra1_iface.v
    // End of automatics
 
@@ -62,11 +60,9 @@ module ocra1_iface_tb;
 
       // initialisation
       clk = 1;
-      datax_i = 0;
-      datay_i = 0;
-      dataz_i = 0;
-      dataz2_i = 0;
+      data_i = 0;
       valid_i = 0;
+      spi_clk_div_i = 32;
 
       #100 send(24'h200002, 24'h200002, 24'h200002, 24'h200002); // initialise all DACs
       #10000 sendV(1,2,3,4);
@@ -80,7 +76,11 @@ module ocra1_iface_tb;
       input [23:0] inx, iny, inz, inz2;
       begin
 	 // TODO: perform a check to see whether the busy line is set before trying to send data
-	 #10 datax_i = inx; datay_i = iny; dataz_i = inz; dataz2_i = inz2; valid_i = 1;
+	 #10 data_i = {5'd0, 2'd0, 1'd0, inx};
+	 valid_i = 1; 
+	 #10 data_i = {5'd0, 2'd1, 1'd0, iny};
+	 #10 data_i = {5'd0, 2'd2, 1'd0, inz}; 	 
+	 #10 data_i = {5'd0, 2'd3, 1'd1, inz2};
 	 #10 valid_i = 0;
       end
    endtask // send
@@ -108,11 +108,9 @@ module ocra1_iface_tb;
 		   .busy_o		(busy_o),
 		   // Inputs
 		   .clk			(clk),
-		   .datax_i		(datax_i[23:0]),
-		   .datay_i		(datay_i[23:0]),
-		   .dataz_i		(dataz_i[23:0]),
-		   .dataz2_i		(dataz2_i[23:0]),
-		   .valid_i		(valid_i));
+		   .data_i		(data_i[31:0]),
+		   .valid_i		(valid_i),
+		   .spi_clk_div_i	(spi_clk_div_i[5:0]));
 
    ocra1_model OCRA1(
 		     .clk		(sclk),

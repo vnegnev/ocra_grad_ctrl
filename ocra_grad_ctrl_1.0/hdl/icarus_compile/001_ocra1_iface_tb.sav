@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sun Sep  6 11:18:57 2020
+[*] Sun Sep  6 15:50:50 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra1_iface_tb.lxt"
-[dumpfile_mtime] "Sun Sep  6 11:18:47 2020"
-[dumpfile_size] 27217
+[dumpfile_mtime] "Sun Sep  6 15:50:43 2020"
+[dumpfile_size] 27867
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra1_iface_tb.sav"
 [timestart] 0
 [size] 1631 846
 [pos] -1 -1
-*-13.138706 900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-14.295842 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra1_iface_tb.
 [treeopen] ocra1_iface_tb.OCRA1.
 [sst_width] 230
@@ -18,12 +18,6 @@
 [sst_vpaned_height] 228
 @28
 ocra1_iface_tb.clk[0]
-@22
-ocra1_iface_tb.datax_i[23:0]
-ocra1_iface_tb.datay_i[23:0]
-ocra1_iface_tb.dataz_i[23:0]
-ocra1_iface_tb.dataz2_i[23:0]
-@28
 ocra1_iface_tb.valid_i[0]
 @200
 -
