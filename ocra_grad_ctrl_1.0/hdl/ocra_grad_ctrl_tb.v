@@ -191,7 +191,7 @@ module ocra_grad_ctrl_tb;
          s00_axi_arvalid = 0;
          #10 s00_axi_rready = 0;
       end
-   endtask // rd32   
+   endtask // rd32
 
    // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)
    always #5 clk = !clk;

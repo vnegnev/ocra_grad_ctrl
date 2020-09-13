@@ -1,0 +1,55 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Sun Sep 13 17:19:04 2020
+[*]
+[dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_grad_bram_tb.lxt"
+[dumpfile_mtime] "Sun Sep 13 17:18:43 2020"
+[dumpfile_size] 23432
+[savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_grad_bram_tb.sav"
+[timestart] 0
+[size] 1920 1025
+[pos] -238 -154
+*-6.207460 111 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] grad_bram_tb.
+[sst_width] 230
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 292
+@28
+grad_bram_tb.S_AXI_ACLK[0]
+grad_bram_tb.S_AXI_ARESETN[0]
+grad_bram_tb.data_enb_i[0]
+@200
+-
+-grad_bram internals
+@22
+grad_bram_tb.UUT.slv_reg0[31:0]
+grad_bram_tb.UUT.slv_reg1[31:0]
+grad_bram_tb.UUT.slv_reg2[31:0]
+grad_bram_tb.UUT.slv_reg3[31:0]
+grad_bram_tb.UUT.slv_reg4[31:0]
+grad_bram_tb.UUT.slv_reg5[31:0]
+grad_bram_tb.UUT.slv_reg6[31:0]
+grad_bram_tb.UUT.slv_reg7[31:0]
+@24
+grad_bram_tb.UUT.data_interval_max[9:0]
+@200
+-
+-AXI bus
+@28
+grad_bram_tb.S_AXI_ARESETN[0]
+@22
+grad_bram_tb.S_AXI_ARADDR[15:0]
+@28
+grad_bram_tb.S_AXI_ARVALID[0]
+grad_bram_tb.S_AXI_ARREADY[0]
+@22
+grad_bram_tb.S_AXI_AWADDR[15:0]
+@28
+grad_bram_tb.S_AXI_AWVALID[0]
+grad_bram_tb.S_AXI_AWREADY[0]
+grad_bram_tb.S_AXI_WREADY[0]
+@29
+grad_bram_tb.UUT.aw_en[0]
+[pattern_trace] 1
+[pattern_trace] 0

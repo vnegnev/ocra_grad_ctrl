@@ -12,7 +12,9 @@
 // Gradient BRAM and output data FSM.  Local memory space: 64K. Lower
 // 32K: control regs (addresses 0 - 8). Upper 32K: BRAM address
 // space (depending on BRAM size selected). 32b addressability
-// (addresses aligned to 4B)
+//
+// (note that addresses aligned to 4B; 16b address bus, of which only
+// upper 14b are used)
 //
 //-----------------------------------------------------------------------------
 // Copyright (c) 2020 by OCRA developers This model is the confidential and
@@ -22,8 +24,6 @@
 // Modification history :
 // 06.09.2020 : created
 //-----------------------------------------------------------------------------
-
-
 
 `ifndef _GRAD_BRAM_
  `define _GRAD_BRAM_
@@ -331,6 +331,7 @@ module grad_bram #
 	      valid_o <= 1;
 	      state <= IDLE;
 	   end else if (data_interval_done_r) begin
+	      // check occurs two clock cycles before usual data output, to avoid possible race condition
 	      // save the error condition; missed output word
 	      busy_error <= 1;
 	      state <= IDLE;
