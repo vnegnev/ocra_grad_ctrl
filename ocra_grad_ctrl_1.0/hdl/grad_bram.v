@@ -133,7 +133,7 @@ module grad_bram #
    // ADDR_LSB = 2 for 32 bits (n downto 2)
    // ADDR_LSB = 3 for 64 bits (n downto 3)
    localparam integer 			      ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-   localparam integer 			      OPT_MEM_ADDR_BITS = C_S_AXI_ADDR_WIDTH - ADDR_LSB - 1;
+   localparam integer 			      OPT_MEM_ADDR_BITS = C_S_AXI_ADDR_WIDTH - ADDR_LSB - 1; // default: 16 - 2 - 1 = 13
    //----------------------------------------------
    //-- Signals for user logic register space example
    //------------------------------------------------
@@ -234,12 +234,12 @@ module grad_bram #
    // and the slave is ready to accept the write address and write data.
    assign slv_reg_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 
-   reg [31:0] grad_bram [2**(OPT_MEM_ADDR_BITS-1)-1:0]; // main BRAM
+   reg [31:0] grad_bram [2**OPT_MEM_ADDR_BITS-1:0]; // main BRAM; 8192 locations by default
    reg [31:0] grad_bram_wdata = 0, grad_bram_wdata_r = 0; // pipelining
    reg 	      grad_bram_wen = 0, grad_bram_wen_r = 0, grad_bram_rd = 0, grad_bram_rd_r1 = 0, grad_bram_rd_r2 = 0; // pipelining
-   reg [OPT_MEM_ADDR_BITS-2:0] grad_bram_waddr = 0, grad_bram_waddr_r = 0, grad_bram_raddr = 0, grad_bram_raddr_r = 0; // pipelining
+   reg [OPT_MEM_ADDR_BITS-1:0] grad_bram_waddr = 0, grad_bram_waddr_r = 0, grad_bram_raddr = 0, grad_bram_raddr_r = 0; // pipelining
    reg [31:0] 		       grad_bram_rdata = 0, grad_bram_rdata_r = 0, grad_bram_rdata_r2 = 0;
-   wire [OPT_MEM_ADDR_BITS-1:0] axi_addr = axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS : ADDR_LSB];
+   wire [OPT_MEM_ADDR_BITS:0] axi_addr = axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS : ADDR_LSB];
    
    /**** Grad mem and general register write logic ****/
    always @(posedge S_AXI_ACLK) begin
@@ -249,12 +249,12 @@ module grad_bram #
       if (grad_bram_wen) grad_bram[grad_bram_waddr] <= grad_bram_wdata;
    
       if (slv_reg_wen) begin
-	 if (axi_addr[OPT_MEM_ADDR_BITS-1]) begin // write to BRAM
+	 if (axi_addr[OPT_MEM_ADDR_BITS]) begin // upper range: write to BRAM
 	    grad_bram_wen <= 1;
-	    grad_bram_waddr <= axi_addr[OPT_MEM_ADDR_BITS-2:0]; // TODO check widths
+	    grad_bram_waddr <= axi_addr[OPT_MEM_ADDR_BITS-1:0]; // BRAM has 13-bit address space by default
 	    grad_bram_wdata <= S_AXI_WDATA;
-	 end else begin // write to config register
-	    case (axi_addr[2:0])
+	 end else begin // lower range: write to config register
+	    case (axi_addr[2:0]) // TODO: look at more than lower 3 bits if this is ever expanded
 	      // no resets
 	      2'd0: slv_reg0 <= S_AXI_WDATA;
 	      2'd1: slv_reg1 <= S_AXI_WDATA;
@@ -282,8 +282,8 @@ module grad_bram #
 
    wire [9:0] data_interval_max = slv_reg0[9:0];
    reg [9:0]  data_interval_cnt = 0;
-   wire       data_interval_done = data_interval_cnt >= data_interval_max;
-   reg 	      data_interval_done_r = 0, data_interval_done_r2 = 0, data_interval_done_r3 = 0;
+   wire       data_interval_done = data_interval_cnt > data_interval_max;
+   reg 	      data_interval_done_r = 0, data_interval_done_r2 = 0, data_interval_done_p = 0;
    reg 	      busy_error = 0;
 
    localparam IDLE = 0, READ = 1, BUSY = 2;
@@ -294,8 +294,8 @@ module grad_bram #
       {grad_bram_rd_r2, grad_bram_rd_r1} <= {grad_bram_rd_r1, grad_bram_rd};
       grad_bram_raddr_r <= grad_bram_raddr;
       // pipelining, to avoid busy-vs-done logic issues
-      {data_interval_done_r3, data_interval_done_r2, data_interval_done_r} 
-	<= {data_interval_done_r2, data_interval_done_r, data_interval_done}; 
+      {data_interval_done_r2, data_interval_done_r} <= {data_interval_done_r, data_interval_done};
+      data_interval_done_p <= !data_interval_done_r2 && data_interval_done_r; // capture posedges
 
       if (!data_enb_i) begin
 	 grad_bram_raddr <= offset_i[OPT_MEM_ADDR_BITS-2:0];
@@ -303,7 +303,7 @@ module grad_bram #
 	 data_interval_cnt <= data_interval_max;
       end else begin
 	 // data interval counter logic
-	 if (data_interval_done_r3) begin
+	 if (data_interval_done_p) begin
 	    data_interval_cnt <= 0;
 	 end else begin
 	    data_interval_cnt <= data_interval_cnt + 1;
@@ -338,7 +338,7 @@ module grad_bram #
 	   end else state <= BUSY;
 	end
 	default: begin // IDLE state
-	   if (data_interval_done_r3) begin
+	   if (data_interval_done_p) begin
 	      state <= READ;
 	      data_o <= grad_bram_rdata_r;
 	      grad_bram_raddr <= grad_bram_raddr + 1; // next address

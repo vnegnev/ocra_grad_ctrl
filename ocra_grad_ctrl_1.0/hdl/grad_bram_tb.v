@@ -71,6 +71,8 @@ module grad_bram_tb;
    // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)   
    always #5 S_AXI_ACLK = !S_AXI_ACLK;
 
+   integer 		k;
+   
    initial begin
       $dumpfile("icarus_compile/000_grad_bram_tb.lxt");
       $dumpvars(0, grad_bram_tb);
@@ -94,12 +96,52 @@ module grad_bram_tb;
       serial_busy_i = 0;
 
       #107 S_AXI_ARESETN = 1; // extra 7ns to ensure that TB stimuli occur a bit before the positive clock edges
+      S_AXI_BREADY = 1; // TODO: make this more fine-grained if bus reads/writes don't work properly in hardware
       #10 wr32(16'd4, 32'hdeadbeef); // reg 1
-      #10 wr32(16'd8, 32'hcafebabe); // reg 2
-      #10 wr32(16'd12, 32'habcd0123); // reg 3
-      #10 wr32(16'd16, 32'hfedcba98); // reg 4
+      wr32(16'd8, 32'hcafebabe); // reg 2
+      wr32(16'd12, 32'habcd0123); // reg 3
+      wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
 
-      #10000 $finish;      
+      // register readback tests
+      #10 rd32(16'd0, {22'd0, 10'd303});
+      rd32(16'd4, 32'hdeadbeef);
+      rd32(16'd8, 32'hcafebabe);
+      rd32(16'd12, 32'habcd0123);
+      rd32(16'd16, 32'd0);
+
+      // BRAM writes
+      for (k = 0; k < 8192; k = k + 1) begin // should overflow 1 location
+	 wr32(16'h8000 + (k << 2), k);
+      end
+
+      // Start outputting data; address 0
+      #100 data_enb_i = 1;
+
+      // Change output rate to be maximally fast (one output per 4 clock cycles), then change back to normal
+      #29300 wr32(16'd0, {22'd0, 10'd0});
+      #200 wr32(16'd0, {22'd0, 10'd303});
+
+      // Change BRAM offset (before previous output is finished)
+      #5000 offset_i = 10;
+      #5000 data_enb_i = 0;
+      #10 data_enb_i = 1;
+
+      // Simulate a 'busy' condition that doesn't stay for very long
+      #10000 serial_busy_i = 1;
+      #3000 serial_busy_i = 0;
+      #10 rd32(16'd16, 32'd0);
+
+      // Simulate a longer 'busy' condition that will compromise the output integrity
+      #10000 serial_busy_i = 1;
+      #10000 serial_busy_i = 0;
+      #10 rd32(16'd16, 32'd1);
+
+      // Reset core, make sure it resumes correctly
+      #500 S_AXI_ARESETN = 0;
+      #10 S_AXI_ARESETN = 1;
+
+      // TODO: continue here -- reset behaviour in response to momentary reset isn't entirely clear.
+      #20000 $finish;
    end
 
    // Tasks for AXI bus reads and writes
@@ -175,6 +217,9 @@ module grad_bram_tb;
 		 .S_AXI_ARPROT		(S_AXI_ARPROT[2:0]),
 		 .S_AXI_ARVALID		(S_AXI_ARVALID),
 		 .S_AXI_RREADY		(S_AXI_RREADY));
+
+   // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
+   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_amax = UUT.grad_bram[8191];
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_
 
