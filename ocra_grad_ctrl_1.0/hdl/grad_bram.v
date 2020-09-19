@@ -284,6 +284,10 @@ module grad_bram #
    reg [9:0]  data_interval_cnt = 0;
    wire       data_interval_done = data_interval_cnt > data_interval_max;
    reg 	      data_interval_done_r = 0, data_interval_done_r2 = 0, data_interval_done_p = 0;
+   reg [15:0] data_wait_cnt = 0, data_wait_max = 0; // longer waits, in units of data interval
+   wire       data_wait_done = data_wait_cnt == data_wait_max;
+   reg 	      data_wait_done_r = 0;
+   wire       data_int_and_wait_done = data_wait_done_r && data_interval_done_p;
    reg 	      busy_error = 0;
 
    localparam IDLE = 0, READ = 1, BUSY = 2;
@@ -295,19 +299,23 @@ module grad_bram #
       grad_bram_raddr_r <= grad_bram_raddr;
       // pipelining, to avoid busy-vs-done logic issues
       {data_interval_done_r2, data_interval_done_r} <= {data_interval_done_r, data_interval_done};
-      data_interval_done_p <= !data_interval_done_r2 && data_interval_done_r; // capture posedges
-
+      data_interval_done_p <= !data_interval_done_r2 && data_interval_done_r; // capture posedges, to ensure it's high for only 1 cycle
+      data_wait_done_r <= data_wait_done;
+      
+      // BRAM read address and delay counter logic
       if (!data_enb_i) begin
 	 grad_bram_raddr <= offset_i[OPT_MEM_ADDR_BITS-2:0];
 	 // didn't use data_interval_cnt <= 0 so that grad_bram_rd will be set on the first cycle after data_enb_i
 	 data_interval_cnt <= data_interval_max;
+	 data_wait_cnt <= 0;
       end else begin
 	 // data interval counter logic
-	 if (data_interval_done_p) begin
-	    data_interval_cnt <= 0;
-	 end else begin
-	    data_interval_cnt <= data_interval_cnt + 1;
-	 end
+	 if (data_interval_done_p) data_interval_cnt <= 0;
+	 else data_interval_cnt <= data_interval_cnt + 1;
+
+	 // data wait counter logic (recall the last statement takes priority in Verilog
+	 if (data_interval_done_p) data_wait_cnt <= data_wait_cnt + 1;
+	 if (data_wait_done_r) data_wait_cnt <= 0;
       end
 
       // data output logic
@@ -316,7 +324,7 @@ module grad_bram #
       valid_o <= 0; // default
       // always read from BRAM
       grad_bram_rdata <= grad_bram[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
-      grad_bram_rdata_r <= grad_bram_rdata; 
+      grad_bram_rdata_r <= grad_bram_rdata;
       case (state)
 	READ: begin
 	   if (serial_busy_i) begin // make sure busy ends before next cycle is meant to begin
@@ -341,6 +349,7 @@ module grad_bram #
 	   if (data_interval_done_p) begin
 	      state <= READ;
 	      data_o <= grad_bram_rdata_r;
+	      data_wait_max <= {13'd0, grad_bram_rdata_r[29:27]}; // TODO: implement longer delays using grad_bram_data_r[30]
 	      grad_bram_raddr <= grad_bram_raddr + 1; // next address
 	   end
 	   if (!S_AXI_ARESETN) busy_error <= 0; // clear busy errors if core is reset
