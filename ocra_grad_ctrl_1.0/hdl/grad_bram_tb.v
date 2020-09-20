@@ -72,7 +72,8 @@ module grad_bram_tb;
    always #5 S_AXI_ACLK = !S_AXI_ACLK;
 
    integer 		k;
-   
+
+   // Stimuli and read/write checks
    initial begin
       $dumpfile("icarus_compile/000_grad_bram_tb.lxt");
       $dumpvars(0, grad_bram_tb);
@@ -141,8 +142,43 @@ module grad_bram_tb;
       #10 S_AXI_ARESETN = 1;
 
       // TODO: continue here -- reset behaviour in response to momentary reset isn't entirely clear.
-      #20000 $finish;
-   end
+      #15000  if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
+   end // initial begin
+
+   // Output word checks at specific times
+   integer n;
+   initial begin
+      // test readout and speed logic
+      #246405 for (n = 0; n < 9; n = n + 1) begin
+	 check_output(n); #3070;
+      end
+      check_output(9); #1690; // speed up in the middle of pause
+      for (n = 10; n < 15; n = n + 1) begin
+      	 check_output(n); #40;
+      end
+      check_output(15); #3070; // slow down in the middle of pause
+      for (n = 16; n < 18; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+      check_output(18); #840;      
+
+      // test address reset and offset
+      for (n = 10; n < 13; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+
+      // test busy causing a <1-cycle delay
+      check_output(13); #3750 check_output(14); #2390; // 3070 +/- 680      
+      check_output(15); #3070 check_output(16); #3070;
+      check_output(17); #11530 check_output(20); #750;
+      for (n = 21; n < 26; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+   end // initial begin
 
    // Tasks for AXI bus reads and writes
    task wr32; //write to bus
@@ -187,6 +223,20 @@ module grad_bram_tb;
          #10 S_AXI_RREADY = 0;
       end
    endtask // rd32
+
+   task check_output;
+      input[31:0] expected;
+      begin
+	 if (!valid_o) begin
+	    $display("%d ns: valid_o low, expected high", $time);
+	    err <= 1;
+	 end
+	 if (expected != data_o) begin
+	    $display("%d ns: data_o expected 0x%x, saw 0x%x", $time, expected, data_o);
+	    err <= 1;
+	 end
+      end
+   endtask // check_output   
    
    grad_bram UUT(/*AUTOINST*/
 		 // Outputs
