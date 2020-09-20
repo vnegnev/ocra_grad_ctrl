@@ -16,6 +16,10 @@
 // (note that addresses aligned to 4B; 16b address bus, of which only
 // upper 14b are used)
 //
+// BRAM data is interpreted as follows by this core. Bits 29:27:
+// number of intervals to 'hold' data for (i.e. not transmit anything
+// more to the serialiser cores).
+//
 //-----------------------------------------------------------------------------
 // Copyright (c) 2020 by OCRA developers This model is the confidential and
 // proprietary property of OCRA developers and the possession or use of this
@@ -304,7 +308,7 @@ module grad_bram #
       
       // BRAM read address and delay counter logic
       if (!data_enb_i) begin
-	 grad_bram_raddr <= offset_i[OPT_MEM_ADDR_BITS-2:0];
+	 grad_bram_raddr <= offset_i[OPT_MEM_ADDR_BITS-1:0];
 	 // didn't use data_interval_cnt <= 0 so that grad_bram_rd will be set on the first cycle after data_enb_i
 	 data_interval_cnt <= data_interval_max;
 	 data_wait_cnt <= 0;
@@ -314,8 +318,10 @@ module grad_bram #
 	 else data_interval_cnt <= data_interval_cnt + 1;
 
 	 // data wait counter logic (recall the last statement takes priority in Verilog
-	 if (data_interval_done_p) data_wait_cnt <= data_wait_cnt + 1;
-	 if (data_wait_done_r) data_wait_cnt <= 0;
+	 if (data_interval_done_p) begin
+	    if (data_wait_done_r) data_wait_cnt <= 0;
+	    else data_wait_cnt <= data_wait_cnt + 1;
+	 end	 
       end
 
       // data output logic
@@ -346,7 +352,8 @@ module grad_bram #
 	   end else state <= BUSY;
 	end
 	default: begin // IDLE state
-	   if (data_interval_done_p) begin
+	   // if (data_interval_done_p) begin
+	   if (data_int_and_wait_done) begin
 	      state <= READ;
 	      data_o <= grad_bram_rdata_r;
 	      data_wait_max <= {13'd0, grad_bram_rdata_r[29:27]}; // TODO: implement longer delays using grad_bram_data_r[30]

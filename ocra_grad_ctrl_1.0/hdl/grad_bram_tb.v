@@ -110,9 +110,14 @@ module grad_bram_tb;
       rd32(16'd12, 32'habcd0123);
       rd32(16'd16, 32'd0);
 
-      // BRAM writes
-      for (k = 0; k < 8192; k = k + 1) begin // should overflow 1 location
+      // BRAM writes, no delays
+      for (k = 0; k < 1000; k = k + 1) begin
 	 wr32(16'h8000 + (k << 2), k);
+      end
+
+      // BRAM writes, delays increasing from 0, 1 ... 7, down again
+      for (k = 8000; k < 8192; k = k + 1) begin
+	 wr32(16'h8000 + (k << 2), {2'd0, k[2:0], 3'd0, k[23:0]});
       end
 
       // Start outputting data; address 0
@@ -141,8 +146,17 @@ module grad_bram_tb;
       #500 S_AXI_ARESETN = 0;
       #10 S_AXI_ARESETN = 1;
 
-      // TODO: continue here -- reset behaviour in response to momentary reset isn't entirely clear.
-      #15000  if (err) begin
+      // TODO: reset behaviour in response to momentary reset isn't entirely clear.
+
+
+      // Change to the part of the memory with waits
+      #15000 S_AXI_ARESETN = 0;
+      offset_i = 8000;
+      data_enb_i = 0;
+      #10 S_AXI_ARESETN = 1;
+      #10 data_enb_i = 1;
+
+      #200000 if (err) begin
 	 $display("THERE WERE ERRORS");
 	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
       end
@@ -153,7 +167,7 @@ module grad_bram_tb;
    integer n;
    initial begin
       // test readout and speed logic
-      #246405 for (n = 0; n < 9; n = n + 1) begin
+      #36405 for (n = 0; n < 9; n = n + 1) begin
 	 check_output(n); #3070;
       end
       check_output(9); #1690; // speed up in the middle of pause
@@ -269,7 +283,7 @@ module grad_bram_tb;
 		 .S_AXI_RREADY		(S_AXI_RREADY));
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
-   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_amax = UUT.grad_bram[8191];
+   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_a8000 = UUT.grad_bram[8000], bram_amax = UUT.grad_bram[8191];
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_
 
