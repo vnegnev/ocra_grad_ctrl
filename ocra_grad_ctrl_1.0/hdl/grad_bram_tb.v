@@ -164,7 +164,8 @@ module grad_bram_tb;
    end // initial begin
 
    // Output word checks at specific times
-   integer n;
+   integer n, p;
+   wire [2:0] n_lsbs = n[2:0];
    initial begin
       // test readout and speed logic
       #36405 for (n = 0; n < 9; n = n + 1) begin
@@ -189,8 +190,15 @@ module grad_bram_tb;
       check_output(13); #3750 check_output(14); #2390; // 3070 +/- 680      
       check_output(15); #3070 check_output(16); #3070;
       check_output(17); #11530 check_output(20); #750;
-      for (n = 21; n < 26; n = n + 1) begin
+      for (n = 21; n < 25; n = n + 1) begin
       	 check_output(n); #3070;
+      end
+      check_output(25); #2600; // uneven delay just from timing of the reconfiguration
+
+      // test larger intervals
+      for (n = 0; n < 16; n = n + 1) begin
+	 check_output({2'd0, n[2:0], 3'd0, 24'd8000 + n[23:0]});
+	 for (p = 0; p <= n[2:0]; p = p + 1) #3070;
       end
    end // initial begin
 
@@ -284,6 +292,7 @@ module grad_bram_tb;
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
    wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_a8000 = UUT.grad_bram[8000], bram_amax = UUT.grad_bram[8191];
+   wire [23:0] data_o_lower = data_o[23:0]; // to avoid all 32 bits; just for visual debugging
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_
 
