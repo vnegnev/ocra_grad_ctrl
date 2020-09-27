@@ -113,7 +113,8 @@ module ocra_grad_ctrl_tb;
    always #5 clk = !clk;   
 
    reg [23:0] 		k;
-   reg [2:0] 		channel;
+   reg [2:0] 		extra_wait;
+   reg [1:0] 		channel;
    reg 			broadcast;
    // Stimuli and read/write checks
    initial begin
@@ -175,25 +176,53 @@ module ocra_grad_ctrl_tb;
       wr32(16'h8004, {8'd1, 1'd0, 24'h200002});
       wr32(16'h8008, {8'd2, 1'd0, 24'h200002});
       wr32(16'h800c, {8'd3, 1'd1, 24'h200002});
-      // BRAM writes, no extra delays
-      for (k = 4; k < 1000; k = k + 1) begin
+
+      // BRAM writes on all 4 channels, no extra waits, sustained
+      // update interval of 4 * 3070 ns = 12280 ns (clock of 10ns
+      // period; for 8ns period this ends up being 9824ns, i.e. 101.7
+      // ksps
+      for (k = 4; k < 100; k = k + 1) begin
 	 channel = k[1:0];
-	 broadcast = k % 4;
+	 broadcast = !( (k + 1) % 4); // broacast on k=7, k=11, etc
 	 wr32_oc1(16'h8000 + (k << 2), 0, channel, broadcast, k);
 	 // wr32(16'h8000 + (k << 2), {5'd0, channel, broadcast, k});
       end
 
-      // BRAM writes, delays increasing from 0, 1 ... 7, down again
-      for (k = 8000; k < 8192; k = k + 1) begin
-	 wr32(16'h8000 + (k << 2), {2'd0, k[2:0], 3'd0, k[23:0]});
+      // BRAM writes on only X and Z, each has an extra wait of 1 -
+      // leading to a sustained update interval as above, but only for
+      // 2 channels
+      for (k = 1000; k < 1100; k = k + 1) begin
+	 channel = k[0] ? 2 : 0;
+	 broadcast = channel == 2; // broadcast on Z updates
+	 wr32_oc1(16'h8000 + (k << 2), 1, channel, broadcast, k);
+      end
+
+      // BRAM writes on only Y and Z2, Y has no extra wait and Z2 has
+      // an extra wait of 2 - leading to a sustained update interval
+      // as above, but only for 2 channels (alternative way)
+      for (k = 2000; k < 2100; k = k + 1) begin
+	 channel = k[0] ? 3 : 1;
+	 broadcast = channel == 3; // broadcast on Z2 updates
+	 extra_wait = (channel == 3) ? 2 : 0;
+	 wr32_oc1(16'h8000 + (k << 2), extra_wait, channel, broadcast, k);
       end
 
       // Start outputting data; address 0
       #100 grad_bram_enb_i = 1;
 
+      // change output address; long delay while it's held off to clear the busy state
+      #60000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 1000;
+      #10000 grad_bram_enb_i = 1;
+
+      // change output address; long delay while it's held off to clear the busy state
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 2000;
+      #10000 grad_bram_enb_i = 1;      
+      
       // Change output rate to be slightly slower, then change back to normal
-      #39300 wr32(16'd0, {22'd0, 10'd500});
-      #200 wr32(16'd0, {22'd0, 10'd303});
+      #58820 wr32(16'd0, {22'd0, 10'd500});
+      #10000 wr32(16'd0, {22'd0, 10'd303});
 
       // Change BRAM offset (before previous output is finished)
       #5000 grad_bram_offset_i = 10;

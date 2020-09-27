@@ -1,23 +1,37 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sun Sep 27 13:28:26 2020
+[*] Sun Sep 27 14:27:51 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra_grad_ctrl_tb.lxt"
-[dumpfile_mtime] "Sun Sep 27 13:26:54 2020"
-[dumpfile_size] 220766
+[dumpfile_mtime] "Sun Sep 27 14:25:57 2020"
+[dumpfile_size] 300567
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra_grad_ctrl_tb.sav"
-[timestart] 31890
+[timestart] 0
 [size] 1920 1025
 [pos] -1 -1
-*-12.392985 42510 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-16.157078 38450 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra_grad_ctrl_tb.
 [treeopen] ocra_grad_ctrl_tb.UUT.
 [sst_width] 280
-[signals_width] 209
+[signals_width] 242
 [sst_expanded] 1
 [sst_vpaned_height] 290
 @28
 ocra_grad_ctrl_tb.clk[0]
+ocra_grad_ctrl_tb.rst_n[0]
+ocra_grad_ctrl_tb.grad_bram_enb_i[0]
+@22
+ocra_grad_ctrl_tb.grad_bram_offset_i[13:0]
+@28
+ocra_grad_ctrl_tb.UUT.busy[0]
+@200
+-
+-ocra1 DAC outputs
+@24
+ocra_grad_ctrl_tb.oc1_voutx[17:0]
+ocra_grad_ctrl_tb.oc1_vouty[17:0]
+ocra_grad_ctrl_tb.oc1_voutz[17:0]
+ocra_grad_ctrl_tb.oc1_voutz2[17:0]
 @200
 -
 @22
@@ -38,22 +52,16 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.valid_o[0]
 @200
 -
+@201
 -ocra1
 @28
 ocra_grad_ctrl_tb.oc1_clk_o[0]
 ocra_grad_ctrl_tb.oc1_syncn_o[0]
-@29
 ocra_grad_ctrl_tb.oc1_ldacn_o[0]
-@28
 ocra_grad_ctrl_tb.oc1_sdox_o[0]
 ocra_grad_ctrl_tb.oc1_sdoy_o[0]
 ocra_grad_ctrl_tb.oc1_sdoz2_o[0]
 ocra_grad_ctrl_tb.oc1_sdoz_o[0]
-@24
-ocra_grad_ctrl_tb.oc1_voutx[17:0]
-ocra_grad_ctrl_tb.oc1_vouty[17:0]
-ocra_grad_ctrl_tb.oc1_voutz[17:0]
-ocra_grad_ctrl_tb.oc1_voutz2[17:0]
 @200
 -
 @24
@@ -62,6 +70,7 @@ ocra_grad_ctrl_tb.UUT.ocra1_if.state[5:0]
 @28
 ocra_grad_ctrl_tb.UUT.ocra1_if.valid_i[0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.valid_r[0]
+ocra_grad_ctrl_tb.UUT.ocra1_if.broadcast_r[0]
 @22
 ocra_grad_ctrl_tb.UUT.ocra1_if.datax_r[23:0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.datay_r[23:0]
