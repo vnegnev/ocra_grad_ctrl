@@ -72,7 +72,8 @@ module grad_bram_tb;
    always #5 S_AXI_ACLK = !S_AXI_ACLK;
 
    integer 		k;
-   
+
+   // Stimuli and read/write checks
    initial begin
       $dumpfile("icarus_compile/000_grad_bram_tb.lxt");
       $dumpvars(0, grad_bram_tb);
@@ -109,9 +110,14 @@ module grad_bram_tb;
       rd32(16'd12, 32'habcd0123);
       rd32(16'd16, 32'd0);
 
-      // BRAM writes
-      for (k = 0; k < 8192; k = k + 1) begin // should overflow 1 location
+      // BRAM writes, no delays
+      for (k = 0; k < 1000; k = k + 1) begin
 	 wr32(16'h8000 + (k << 2), k);
+      end
+
+      // BRAM writes, delays increasing from 0, 1 ... 7, down again
+      for (k = 8000; k < 8192; k = k + 1) begin
+	 wr32(16'h8000 + (k << 2), {2'd0, k[2:0], 3'd0, k[23:0]});
       end
 
       // Start outputting data; address 0
@@ -140,9 +146,61 @@ module grad_bram_tb;
       #500 S_AXI_ARESETN = 0;
       #10 S_AXI_ARESETN = 1;
 
-      // TODO: continue here -- reset behaviour in response to momentary reset isn't entirely clear.
-      #20000 $finish;
-   end
+      // TODO: reset behaviour in response to momentary reset isn't entirely clear.
+
+
+      // Change to the part of the memory with waits
+      #15000 S_AXI_ARESETN = 0;
+      offset_i = 8000;
+      data_enb_i = 0;
+      #10 S_AXI_ARESETN = 1;
+      #10 data_enb_i = 1;
+
+      #200000 if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
+   end // initial begin
+
+   // Output word checks at specific times
+   integer n, p;
+   wire [2:0] n_lsbs = n[2:0];
+   initial begin
+      // test readout and speed logic
+      #36405 for (n = 0; n < 9; n = n + 1) begin
+	 check_output(n); #3070;
+      end
+      check_output(9); #1690; // speed up in the middle of pause
+      for (n = 10; n < 15; n = n + 1) begin
+      	 check_output(n); #40;
+      end
+      check_output(15); #3070; // slow down in the middle of pause
+      for (n = 16; n < 18; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+      check_output(18); #840;      
+
+      // test address reset and offset
+      for (n = 10; n < 13; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+
+      // test busy causing a <1-cycle delay
+      check_output(13); #3750 check_output(14); #2390; // 3070 +/- 680      
+      check_output(15); #3070 check_output(16); #3070;
+      check_output(17); #11530 check_output(20); #750;
+      for (n = 21; n < 25; n = n + 1) begin
+      	 check_output(n); #3070;
+      end
+      check_output(25); #2600; // uneven delay just from timing of the reconfiguration
+
+      // test larger intervals
+      for (n = 0; n < 16; n = n + 1) begin
+	 check_output({2'd0, n[2:0], 3'd0, 24'd8000 + n[23:0]});
+	 for (p = 0; p <= n[2:0]; p = p + 1) #3070;
+      end
+   end // initial begin
 
    // Tasks for AXI bus reads and writes
    task wr32; //write to bus
@@ -187,6 +245,20 @@ module grad_bram_tb;
          #10 S_AXI_RREADY = 0;
       end
    endtask // rd32
+
+   task check_output;
+      input[31:0] expected;
+      begin
+	 if (!valid_o) begin
+	    $display("%d ns: valid_o low, expected high", $time);
+	    err <= 1;
+	 end
+	 if (expected != data_o) begin
+	    $display("%d ns: data_o expected 0x%x, saw 0x%x", $time, expected, data_o);
+	    err <= 1;
+	 end
+      end
+   endtask // check_output   
    
    grad_bram UUT(/*AUTOINST*/
 		 // Outputs
@@ -219,7 +291,8 @@ module grad_bram_tb;
 		 .S_AXI_RREADY		(S_AXI_RREADY));
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
-   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_amax = UUT.grad_bram[8191];
+   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_a8000 = UUT.grad_bram[8000], bram_amax = UUT.grad_bram[8191];
+   wire [23:0] data_o_lower = data_o[23:0]; // to avoid all 32 bits; just for visual debugging
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_
 

@@ -21,6 +21,8 @@
 
  `include "grad_bram.v"
  `include "ocra_grad_ctrl_S_AXI_INTR.v"
+ `include "ocra1_iface.v"
+ `include "gpa_fhdo_iface.v"
 
  `timescale 1ns / 1ns
 
@@ -33,7 +35,7 @@ module ocra_grad_ctrl #
    (
     // Users to add ports here
     input [13:0] 			      grad_bram_offset_i,
-    input 				      grad_bram_rst_i, // maybe tie to AXI reset later
+    input 				      grad_bram_enb_i, // enable core execution
 
     // Outputs to the OCRA1 board (concatenation on the expansion header etc will be handled in Vivado's block diagram)
     output 				      oc1_clk_o, // SPI clock
@@ -114,6 +116,13 @@ module ocra_grad_ctrl #
    localparam C_INTR_ACTIVE_STATE = 32'hffffffff;
    localparam integer 			      C_IRQ_SENSITIVITY = 1;
    localparam integer 			      C_IRQ_ACTIVE_STATE = 1;
+
+   // Interface connections
+   wire [31:0] 				      data;
+   wire 				      data_valid;
+   wire 				      clk = s00_axi_aclk; // alias
+   wire 				      oc1_busy, fhd_busy;
+   wire 				      busy = oc1_busy || fhd_busy;
    
    // Instantiation of Axi Bus Interface S00_AXI
    grad_bram # ( 
@@ -142,12 +151,45 @@ module ocra_grad_ctrl #
 				   .S_AXI_RVALID(s00_axi_rvalid),
 				   .S_AXI_RREADY(s00_axi_rready),
 
-				   .offset_i(16'd0),
-				   .data_enb_i(1'd0),
+				   .offset_i({2'd0, grad_bram_offset_i}),
+				   .data_enb_i(grad_bram_enb_i),
 				   .serial_busy_i(1'd0),
-				   .data_o(),
-				   .valid_o()
+				   .data_o(data),
+				   .valid_o(data_valid)
 				   );
+
+   // TODO: continue writing interfaces and mapping
+   ocra1_iface ocra1_if (
+			 // Outputs
+			 .oc1_clk_o	(oc1_clk_o),
+			 .oc1_syncn_o	(oc1_syncn_o),
+			 .oc1_ldacn_o	(oc1_ldacn_o),
+			 .oc1_sdox_o	(oc1_sdox_o),
+			 .oc1_sdoy_o	(oc1_sdoy_o),
+			 .oc1_sdoz_o	(oc1_sdoz_o),
+			 .oc1_sdoz2_o	(oc1_sdoz2_o),
+			 .busy_o		(oc1_busy),
+			 // Inputs
+			 .clk		(clk),
+			 .data_i		(data),
+			 .valid_i		(data_valid),
+			 .spi_clk_div_i	(spi_clk_div_i[5:0]));
+
+   gpa_fhdo_iface gpa_fhdo_if (
+			       // Outputs
+			       .fhd_clk_o	(fhd_clk_o),
+			       .fhd_sdo_o	(fhd_sdo_o),
+			       .fhd_csn_o	(fhd_csn_o),
+			       .busy_o		(fhd_busy),
+			       // Inputs
+			       .clk		(clk),
+			       // TODO for Benjamin: update core logic
+			       .datax_i		(datax_i[23:0]),
+			       .datay_i		(datay_i[23:0]),
+			       .dataz_i		(dataz_i[23:0]),
+			       .dataz2_i	        (dataz2_i[23:0]),
+			       .valid_i		(data_valid),
+			       .fhd_sdi_i	(fhd_sdi_i));
 
    // Instantiation of Axi Bus Interface S_AXI_INTR
    ocra_grad_ctrl_S_AXI_INTR # ( 
@@ -182,10 +224,6 @@ module ocra_grad_ctrl #
 								   .S_AXI_RREADY(s_axi_intr_rready),
 								   .irq(irq)
 								   );
-
-   // Add user logic here
-
-   // User logic ends
 
 endmodule
 `endif //  `ifndef _OCRA_GRAD_CTRL_
