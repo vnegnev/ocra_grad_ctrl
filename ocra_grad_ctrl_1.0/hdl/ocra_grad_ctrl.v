@@ -120,6 +120,7 @@ module ocra_grad_ctrl #
    // Interface connections
    wire [31:0] 				      data;
    wire 				      data_valid;
+   wire [5:0] 				      spi_clk_div;
    wire 				      clk = s00_axi_aclk; // alias
    wire 				      oc1_busy, fhd_busy;
    wire 				      busy = oc1_busy || fhd_busy;
@@ -128,35 +129,37 @@ module ocra_grad_ctrl #
    grad_bram # ( 
 		 .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
 		 .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-		 ) grad_bram_inst (
-				   .S_AXI_ACLK(s00_axi_aclk),
-				   .S_AXI_ARESETN(s00_axi_aresetn),
-				   .S_AXI_AWADDR(s00_axi_awaddr),
-				   .S_AXI_AWPROT(s00_axi_awprot),
-				   .S_AXI_AWVALID(s00_axi_awvalid),
-				   .S_AXI_AWREADY(s00_axi_awready),
-				   .S_AXI_WDATA(s00_axi_wdata),
-				   .S_AXI_WSTRB(s00_axi_wstrb),
-				   .S_AXI_WVALID(s00_axi_wvalid),
-				   .S_AXI_WREADY(s00_axi_wready),
-				   .S_AXI_BRESP(s00_axi_bresp),
-				   .S_AXI_BVALID(s00_axi_bvalid),
-				   .S_AXI_BREADY(s00_axi_bready),
-				   .S_AXI_ARADDR(s00_axi_araddr),
-				   .S_AXI_ARPROT(s00_axi_arprot),
-				   .S_AXI_ARVALID(s00_axi_arvalid),
-				   .S_AXI_ARREADY(s00_axi_arready),
-				   .S_AXI_RDATA(s00_axi_rdata),
-				   .S_AXI_RRESP(s00_axi_rresp),
-				   .S_AXI_RVALID(s00_axi_rvalid),
-				   .S_AXI_RREADY(s00_axi_rready),
+		 )
+   grad_bram_inst (
+		   .S_AXI_ACLK(s00_axi_aclk),
+		   .S_AXI_ARESETN(s00_axi_aresetn),
+		   .S_AXI_AWADDR(s00_axi_awaddr),
+		   .S_AXI_AWPROT(s00_axi_awprot),
+		   .S_AXI_AWVALID(s00_axi_awvalid),
+		   .S_AXI_AWREADY(s00_axi_awready),
+		   .S_AXI_WDATA(s00_axi_wdata),
+		   .S_AXI_WSTRB(s00_axi_wstrb),
+		   .S_AXI_WVALID(s00_axi_wvalid),
+		   .S_AXI_WREADY(s00_axi_wready),
+		   .S_AXI_BRESP(s00_axi_bresp),
+		   .S_AXI_BVALID(s00_axi_bvalid),
+		   .S_AXI_BREADY(s00_axi_bready),
+		   .S_AXI_ARADDR(s00_axi_araddr),
+		   .S_AXI_ARPROT(s00_axi_arprot),
+		   .S_AXI_ARVALID(s00_axi_arvalid),
+		   .S_AXI_ARREADY(s00_axi_arready),
+		   .S_AXI_RDATA(s00_axi_rdata),
+		   .S_AXI_RRESP(s00_axi_rresp),
+		   .S_AXI_RVALID(s00_axi_rvalid),
+		   .S_AXI_RREADY(s00_axi_rready),
 
-				   .offset_i({2'd0, grad_bram_offset_i}),
-				   .data_enb_i(grad_bram_enb_i),
-				   .serial_busy_i(1'd0),
-				   .data_o(data),
-				   .valid_o(data_valid)
-				   );
+		   .offset_i({2'd0, grad_bram_offset_i}),
+		   .data_enb_i(grad_bram_enb_i),
+		   .serial_busy_i(1'd0),
+		   .data_o(data),
+		   .valid_o(data_valid),
+		   .spi_clk_div_o(spi_clk_div)
+		   );
 
    // TODO: continue writing interfaces and mapping
    ocra1_iface ocra1_if (
@@ -168,26 +171,26 @@ module ocra_grad_ctrl #
 			 .oc1_sdoy_o	(oc1_sdoy_o),
 			 .oc1_sdoz_o	(oc1_sdoz_o),
 			 .oc1_sdoz2_o	(oc1_sdoz2_o),
-			 .busy_o		(oc1_busy),
+			 .busy_o       	(oc1_busy),
 			 // Inputs
 			 .clk		(clk),
-			 .data_i		(data),
-			 .valid_i		(data_valid),
-			 .spi_clk_div_i	(spi_clk_div_i[5:0]));
+			 .data_i       	(data),
+			 .valid_i      	(data_valid),
+			 .spi_clk_div_i	(spi_clk_div));
 
    gpa_fhdo_iface gpa_fhdo_if (
 			       // Outputs
 			       .fhd_clk_o	(fhd_clk_o),
 			       .fhd_sdo_o	(fhd_sdo_o),
-			       .fhd_csn_o	(fhd_csn_o),
+			       .fhd_csn_o	(fhd_ssn_o),
 			       .busy_o		(fhd_busy),
 			       // Inputs
 			       .clk		(clk),
 			       // TODO for Benjamin: update core logic
-			       .datax_i		(datax_i[23:0]),
-			       .datay_i		(datay_i[23:0]),
-			       .dataz_i		(dataz_i[23:0]),
-			       .dataz2_i	        (dataz2_i[23:0]),
+			       .datax_i		(data[23:0]),
+			       .datay_i		(data[23:0]),
+			       .dataz_i		(data[23:0]),
+			       .dataz2_i	(data[23:0]),
 			       .valid_i		(data_valid),
 			       .fhd_sdi_i	(fhd_sdi_i));
 
@@ -200,30 +203,31 @@ module ocra_grad_ctrl #
 				 .C_INTR_ACTIVE_STATE(C_INTR_ACTIVE_STATE),
 				 .C_IRQ_SENSITIVITY(C_IRQ_SENSITIVITY),
 				 .C_IRQ_ACTIVE_STATE(C_IRQ_ACTIVE_STATE)
-				 ) ocra_grad_ctrl_S_AXI_INTR_inst (
-								   .S_AXI_ACLK(s_axi_intr_aclk),
-								   .S_AXI_ARESETN(s_axi_intr_aresetn),
-								   .S_AXI_AWADDR(s_axi_intr_awaddr),
-								   .S_AXI_AWPROT(s_axi_intr_awprot),
-								   .S_AXI_AWVALID(s_axi_intr_awvalid),
-								   .S_AXI_AWREADY(s_axi_intr_awready),
-								   .S_AXI_WDATA(s_axi_intr_wdata),
-								   .S_AXI_WSTRB(s_axi_intr_wstrb),
-								   .S_AXI_WVALID(s_axi_intr_wvalid),
-								   .S_AXI_WREADY(s_axi_intr_wready),
-								   .S_AXI_BRESP(s_axi_intr_bresp),
-								   .S_AXI_BVALID(s_axi_intr_bvalid),
-								   .S_AXI_BREADY(s_axi_intr_bready),
-								   .S_AXI_ARADDR(s_axi_intr_araddr),
-								   .S_AXI_ARPROT(s_axi_intr_arprot),
-								   .S_AXI_ARVALID(s_axi_intr_arvalid),
-								   .S_AXI_ARREADY(s_axi_intr_arready),
-								   .S_AXI_RDATA(s_axi_intr_rdata),
-								   .S_AXI_RRESP(s_axi_intr_rresp),
-								   .S_AXI_RVALID(s_axi_intr_rvalid),
-								   .S_AXI_RREADY(s_axi_intr_rready),
-								   .irq(irq)
-								   );
+				 ) 
+   ocra_grad_ctrl_S_AXI_INTR_inst (
+				   .S_AXI_ACLK(s_axi_intr_aclk),
+				   .S_AXI_ARESETN(s_axi_intr_aresetn),
+				   .S_AXI_AWADDR(s_axi_intr_awaddr),
+				   .S_AXI_AWPROT(s_axi_intr_awprot),
+				   .S_AXI_AWVALID(s_axi_intr_awvalid),
+				   .S_AXI_AWREADY(s_axi_intr_awready),
+				   .S_AXI_WDATA(s_axi_intr_wdata),
+				   .S_AXI_WSTRB(s_axi_intr_wstrb),
+				   .S_AXI_WVALID(s_axi_intr_wvalid),
+				   .S_AXI_WREADY(s_axi_intr_wready),
+				   .S_AXI_BRESP(s_axi_intr_bresp),
+				   .S_AXI_BVALID(s_axi_intr_bvalid),
+				   .S_AXI_BREADY(s_axi_intr_bready),
+				   .S_AXI_ARADDR(s_axi_intr_araddr),
+				   .S_AXI_ARPROT(s_axi_intr_arprot),
+				   .S_AXI_ARVALID(s_axi_intr_arvalid),
+				   .S_AXI_ARREADY(s_axi_intr_arready),
+				   .S_AXI_RDATA(s_axi_intr_rdata),
+				   .S_AXI_RRESP(s_axi_intr_rresp),
+				   .S_AXI_RVALID(s_axi_intr_rvalid),
+				   .S_AXI_RREADY(s_axi_intr_rready),
+				   .irq(irq)
+				   );
 
 endmodule
 `endif //  `ifndef _OCRA_GRAD_CTRL_
