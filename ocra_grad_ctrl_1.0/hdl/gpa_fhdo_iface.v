@@ -3,7 +3,7 @@
 // Project       : ocra
 //-----------------------------------------------------------------------------
 // File          : gpa_fhdo_iface.v
-// Author        :   <vlad@arch-ssd>
+// Author        :   <benjamin.menkuec@fh-dortmund.de>
 // Created       : 03.09.2020
 // Last modified : 03.09.2020
 //-----------------------------------------------------------------------------
@@ -30,13 +30,13 @@ module gpa_fhdo_iface(
 		   input 	clk,
 
 		   // data words from gradient memory core
-		   input [23:0] datax_i,
-		   input [23:0] datay_i,
-		   input [23:0] dataz_i,
-		   input [23:0] dataz2_i,
+		   input [31:0] data_i,
 
 		   // data valid flag, should be held high for 1 cycle to initiate a transfer		   
 		   input 	valid_i,
+		   
+		   // SPI clock divider
+		   input [5:0] 	spi_clk_div_i,
 
 		   // GPA-FHDO interface
 		   output reg 	fhd_clk_o,
@@ -51,16 +51,21 @@ module gpa_fhdo_iface(
     wire [15:0] 	    spi_payload = spi_output[15:0];	
 	wire [3:0] 			spi_addr = spi_output[19:16];
 	reg [5:0] 			spi_counter = 0;
+    reg [23:0] 			datax_r = 0, datay_r = 0, dataz_r = 0, dataz2_r = 0;	
+    reg [23:0] 			payload_r = 0;
+    reg 				broadcast_r = 0;
+    reg [1:0] 			channel_r = 0;	
+	reg [5:0] 			spi_clk_div_r = 0;
+	wire [4:0] 			spi_clk_edge_div = spi_clk_div_r[5:1]; // divided by 2
+	reg [5:0] 			div_ctr = 0;
+	reg 				spi_clk = 0;
 	
-	localparam			num_transfer = 4;
+	localparam			num_transfer = 1;
 	reg [2:0]			current_transfer = 0;
 	/*
 		nr		data
-		0		sync_reg
-		1		dac_channel_0
-		2		dac_channel_1
-		3		dac_channel_2
-		4		dac_channel_3
+		0		setup sync_reg
+		1		transfer payload
 	*/
 	
 	localparam			SIZE = 5;
@@ -82,16 +87,16 @@ module gpa_fhdo_iface(
 					spi_output[19:16] = 4'b0010; // sync_reg
 					spi_output[15:0] = 16'h0000; // broadcast off, sync (from ldac) off for all channels
 				end
-				if (current_transfer > 0 && current_transfer < 5) begin
+				if (current_transfer > 0 && current_transfer < 2) begin
 					// select dac_channel
 					spi_output[19] = 1'b1;
-					spi_output[18:16] = current_transfer - 1;
-					case(current_transfer)
-						1: spi_output[15:0] = datax_i[15:0];
-						2: spi_output[15:0] = datay_i[15:0];
-						3: spi_output[15:0] = dataz_i[15:0];
-						4: spi_output[15:0] = dataz2_i[15:0];
+					case (channel_r)
+						2'b00: spi_output[18:16] = 3'b000;
+						2'b01: spi_output[18:16] = 3'b001;
+						2'b10: spi_output[18:16] = 3'b010;
+						default: spi_output[18:16] = 0;
 					endcase
+					spi_output[15:0] = payload_r[15:0];
 				end
 				fsm_function = OUTPUT_SPI;
 			    end
@@ -116,21 +121,34 @@ module gpa_fhdo_iface(
 			default:fsm_function=IDLE;
 		endcase
 	endfunction
+	
+		// Sequence Logic
+   always @(posedge spi_clk) begin
+		state <= next_state;
+   end
 
 	// Sequence Logic
-   always @(posedge clk) begin
-      if(valid_i) begin
-		current_transfer <= 0;
-		state <= START_SPI;
-	  end 
-	  else begin
-		state <= next_state;
-	  end
-   end
+	always @(posedge clk) begin
+		spi_clk <= div_ctr < spi_clk_edge_div; 
+	  	if (div_ctr == spi_clk_div_i) begin
+			div_ctr <= 0;
+		end 
+		else begin
+	      div_ctr <= div_ctr + 1;
+		end
+		if(valid_i) begin
+			spi_clk_div_r <= spi_clk_div_i;
+			current_transfer <= 0;
+			state <= START_SPI;
+			payload_r <= data_i[23:0];
+			broadcast_r <= data_i[24];
+			channel_r <= data_i[26:25];		
+		end 
+	end
 
 
 	// Output Logic
-   always @(posedge clk) begin
+   always @(posedge spi_clk) begin
 		case(state)
 			IDLE: begin
 				busy_o <= 0;
@@ -162,7 +180,7 @@ module gpa_fhdo_iface(
 		  endcase
    end
 
-   always @(negedge clk) begin
+   always @(negedge spi_clk) begin
 		case(state)
 			START_SPI: 	fhd_clk_o <= 0;
 			OUTPUT_SPI:	fhd_clk_o <= 0;

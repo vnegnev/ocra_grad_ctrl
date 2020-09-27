@@ -3,7 +3,7 @@
 // Project       : ocra
 //-----------------------------------------------------------------------------
 // File          : gpa_fhdo_iface_tb.v
-// Author        :   <vlad@arch-ssd>
+// Author        :   <benjamin.menkuec@fh-dortmund.de>
 // Created       : 03.09.2020
 // Last modified : 03.09.2020
 //-----------------------------------------------------------------------------
@@ -31,10 +31,8 @@
 module gpa_fhdo_iface_tb;
    
    reg			clk;			
-   reg [23:0]		datax_i;
-   reg [23:0]		datay_i;
-   reg [23:0]		dataz2_i;		
-   reg [23:0]		dataz_i;		
+   reg [31:0]		data_i;	
+   reg [5:0]		spi_clk_div_i;	   
    reg			valid_i;		
 
    //
@@ -55,26 +53,28 @@ module gpa_fhdo_iface_tb;
 
       // initialisation
       clk = 1;
-      datax_i = 0;
-      datay_i = 0;
-      dataz_i = 0;
-      dataz2_i = 0;
+      data_i = 0;
       valid_i = 0;
+	  spi_clk_div_i = 32;
 
       #100 send(1,2,3,4);
-      #2000 send(5,6,7,8);
+      #20000 send(5,6,7,8);
 
-      #2000 $finish;
+      #20000 $finish;
    end // initial begin
 
-   task send; // send data to GPA-FHDO interface core
+   task send; // send data to OCRA1 interface core
       input [23:0] inx, iny, inz, inz2;
       begin
 	 // TODO: perform a check to see whether the busy line is set before trying to send data
-	 #10 datax_i = inx; datay_i = iny; dataz_i = inz; dataz2_i = inz2; valid_i = 1;
+	 #10 data_i = {5'd0, 2'd0, 1'd0, inx};
+	 valid_i = 1; 
+	 #10 data_i = {5'd0, 2'd1, 1'd0, iny};
+	 #10 data_i = {5'd0, 2'd2, 1'd0, inz}; 	 
+	 #10 data_i = {5'd0, 2'd3, 1'd1, inz2};
 	 #10 valid_i = 0;
       end
-   endtask // send   
+   endtask // send
 
    always #5 clk = !clk;
 
@@ -87,12 +87,10 @@ module gpa_fhdo_iface_tb;
 		    .fhd_clk_o  (sclk),
 			.fhd_csn_o	(csn),
 			// Inputs		     
-		    .datax_i		(datax_i),
-		    .datay_i		(datay_i),
-		    .dataz_i            (dataz_i),
-		    .dataz2_i		(dataz2_i),			
+		    .data_i		(data_i),		
 		    .valid_i	(valid_i),
-		    .fhd_sdi_i		(sdi));
+		    .fhd_sdi_i		(sdi),
+			.spi_clk_div_i	(spi_clk_div_i[5:0]));
 
    dac80504_model GPA_FHDO(
 		     .sclk		(sclk),
