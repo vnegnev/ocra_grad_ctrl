@@ -72,6 +72,20 @@ module ocra1_iface_tb;
       #10000 $finish;
    end // initial begin
 
+   // check voltages
+   initial begin
+      #16556 checkV(0,0,0,0);
+      #8 checkV(1,2,3,4);
+   end
+   initial begin
+      #26604 checkV(1,2,3,4);
+      #8 checkV(5,6,7,8);
+   end
+   initial begin
+      #36660 checkV(5,6,7,8);
+      #8 checkV(-1,-2,-3,-4);
+   end   
+
    task send; // send data to OCRA1 interface core
       input [23:0] inx, iny, inz, inz2;
       begin
@@ -90,7 +104,17 @@ module ocra1_iface_tb;
       begin
 	 send({4'h1, inx, 2'd0}, {4'h1, iny, 2'd0}, {4'h1, inz, 2'd0}, {4'h1, inz2, 2'd0});
       end
-   endtask
+   endtask // sendV
+
+   task checkV;
+      input [17:0] vx, vy, vz, vz2;
+      begin
+	 if (voutx != vx) $display("%d ns: X expected %x, read %x.", $time, vx, voutx);
+	 if (vouty != vy) $display("%d ns: Y expected %x, read %x.", $time, vy, vouty);
+	 if (voutz != vz) $display("%d ns: Z expected %x, read %x.", $time, vz, voutz);
+	 if (voutz2 != vz2) $display("%d ns: Z2 expected %x, read %x.", $time, vz2, voutz2);
+      end
+   endtask // checkV   
 
    always #4 clk = !clk; // 125 MHz clock
 

@@ -1,26 +1,33 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Tue Sep 22 11:08:29 2020
+[*] Sun Sep 27 10:58:08 2020
 [*]
-[dumpfile] "/mnt/ubuntu/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_grad_bram_tb.lxt"
-[dumpfile_mtime] "Tue Sep 22 11:06:44 2020"
-[dumpfile_size] 188099
-[savefile] "/mnt/ubuntu/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_grad_bram_tb.sav"
-[timestart] 110500
-[size] 1920 992
+[dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_grad_bram_tb.lxt"
+[dumpfile_mtime] "Sun Sep 27 10:57:47 2020"
+[dumpfile_size] 188514
+[savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_grad_bram_tb.sav"
+[timestart] 0
+[size] 1920 1025
 [pos] -1 -1
-*-12.207119 129170 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-16.157171 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] grad_bram_tb.
 [sst_width] 230
 [signals_width] 259
 [sst_expanded] 1
-[sst_vpaned_height] 293
+[sst_vpaned_height] 305
 @28
 grad_bram_tb.S_AXI_ACLK[0]
 grad_bram_tb.S_AXI_ARESETN[0]
-grad_bram_tb.data_enb_i[0]
 @24
 grad_bram_tb.offset_i[15:0]
+@28
+grad_bram_tb.data_enb_i[0]
+@22
+grad_bram_tb.data_o[31:0]
+@28
+grad_bram_tb.valid_o[0]
+@25
+grad_bram_tb.spi_clk_div_o[5:0]
 @200
 -
 -grad_bram internals
@@ -78,9 +85,8 @@ grad_bram_tb.UUT.data_wait_done_r[0]
 grad_bram_tb.UUT.data_int_and_wait_done[0]
 @200
 -
-@25
-grad_bram_tb.data_o_lower[23:0]
 @24
+grad_bram_tb.data_o_lower[23:0]
 grad_bram_tb.data_o[31:0]
 @8024
 grad_bram_tb.data_o[31:0]

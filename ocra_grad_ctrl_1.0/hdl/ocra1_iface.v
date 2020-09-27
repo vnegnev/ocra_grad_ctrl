@@ -61,9 +61,10 @@ module ocra1_iface(
    reg [5:0] 			div_ctr = 0;
    reg 				valid_r = 0;
    reg [23:0] 			payload_r = 0;
-   reg 				broadcast_r = 0;
+   reg 				broadcast_r = 0, broadcast_r2 = 0;
    reg [1:0] 			channel_r = 0;
-   reg [23:0] 			datax_r = 0, datay_r = 0, dataz_r = 0, dataz2_r = 0;
+   reg [23:0] 			datax_r = 0, datay_r = 0, dataz_r = 0, dataz2_r = 0; // used for SPI output
+   reg [23:0] 			datax_r2 = 0, datay_r2 = 0, dataz_r2 = 0, dataz2_r2 = 0; // used for temp storage
    
    always @(posedge clk) begin
       // default assignments, which will take place unless overridden by other assignments in the FSM
@@ -73,6 +74,7 @@ module ocra1_iface(
       busy_o <= 1;
 
       spi_clk_div_r <= spi_clk_div_i;
+      broadcast_r2 <= broadcast_r;
 
       // handle input instructions
       valid_r <= valid_i;
@@ -85,10 +87,14 @@ module ocra1_iface(
       
       if (valid_r) begin
 	 case (channel_r)
-	   2'b00: datax_r <= payload_r;
-	   2'b01: datay_r <= payload_r;
-	   2'b10: dataz_r <= payload_r;
-	   default: dataz2_r <= payload_r;
+	   2'b00: datax_r2 <= payload_r;
+	   2'b01: datay_r2 <= payload_r;
+	   2'b10: dataz_r2 <= payload_r;
+	   default: dataz2_r2 <= payload_r;
+	   // 2'b00: datax_r <= payload_r;
+	   // 2'b01: datay_r <= payload_r;
+	   // 2'b10: dataz_r <= payload_r;
+	   // default: dataz2_r <= payload_r;
 	 endcase // case (channel_r)
       end
       
@@ -100,8 +106,8 @@ module ocra1_iface(
 	   oc1_syncn_o <= 1;
 	   busy_o <= 0;
 	   state <= IDLE;
-	   if (broadcast_r) begin
-	      // {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_i, datay_i, dataz_i, dataz2_i};
+	   if (broadcast_r2) begin
+	      {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_r2, datay_r2, dataz_r2, dataz2_r2};
 	      state <= START;
 	   end
 	end
