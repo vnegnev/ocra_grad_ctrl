@@ -22,6 +22,8 @@
  `define _OCRA_GRAD_CTRL_TB_
 
  `include "ocra_grad_ctrl.v"
+ `include "ocra1_model.v"
+ // `include "gpa_fhdo_model.v"
 
  `timescale 1ns / 1ns
 
@@ -43,6 +45,8 @@ module ocra_grad_ctrl_tb;
    wire s00_axi_aclk = clk, s_axi_intr_aclk = clk;
    wire s00_axi_aresetn = rst_n;
    reg 	err; // error flag in testbench
+
+   wire [17:0] oc1_voutx, oc1_vouty, oc1_voutz, oc1_voutz2;
    
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
@@ -105,6 +109,13 @@ module ocra_grad_ctrl_tb;
    wire			s_axi_intr_wready;	// From UUT of ocra_grad_ctrl.v
    // End of automatics
 
+   // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)
+   always #5 clk = !clk;   
+
+   reg [23:0] 		k;
+   reg [2:0] 		channel;
+   reg 			broadcast;
+   // Stimuli and read/write checks
    initial begin
       $dumpfile("icarus_compile/000_ocra_grad_ctrl_tb.lxt");
       $dumpvars(0, ocra_grad_ctrl_tb);
@@ -143,16 +154,124 @@ module ocra_grad_ctrl_tb;
       s_axi_intr_arvalid = 0;
       s_axi_intr_rready = 0;
 
-      #100 rst_n = 1;
-      #100 wr32(0, 32'hdeadbeef);
+      #107 rst_n = 1; // extra 7ns to ensure that TB stimuli occur a bit before the positive clock edges
+      s00_axi_bready = 1; // TODO: make this more fine-grained if bus reads/writes don't work properly in hardware
 
-      #1000 $finish;
-   end
+      // Carry out similar tests to those in grad_bram_tb
+      #10 wr32(16'd4, {26'd0, 6'd30}); // reg 1: LSBs set SPI clock divisor
+      wr32(16'd8, 32'hcafebabe); // reg 2
+      wr32(16'd12, 32'habcd0123); // reg 3
+      wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
+
+      // register readback tests
+      #10 rd32(16'd0, {22'd0, 10'd303});
+      rd32(16'd4, {26'd0, 6'd30});
+      rd32(16'd8, 32'hcafebabe);
+      rd32(16'd12, 32'habcd0123);
+      rd32(16'd16, 32'd0);
+      
+      // BRAM writes, DAC init
+      wr32(16'h8000, {8'd0, 1'd0, 24'h200002});
+      wr32(16'h8004, {8'd1, 1'd0, 24'h200002});
+      wr32(16'h8008, {8'd2, 1'd0, 24'h200002});
+      wr32(16'h800c, {8'd3, 1'd1, 24'h200002});
+      // BRAM writes, no extra delays
+      for (k = 4; k < 1000; k = k + 1) begin
+	 channel = k[1:0];
+	 broadcast = k % 4;
+	 wr32_oc1(16'h8000 + (k << 2), 0, channel, broadcast, k);
+	 // wr32(16'h8000 + (k << 2), {5'd0, channel, broadcast, k});
+      end
+
+      // BRAM writes, delays increasing from 0, 1 ... 7, down again
+      for (k = 8000; k < 8192; k = k + 1) begin
+	 wr32(16'h8000 + (k << 2), {2'd0, k[2:0], 3'd0, k[23:0]});
+      end
+
+      // Start outputting data; address 0
+      #100 grad_bram_enb_i = 1;
+
+      // Change output rate to be slightly slower, then change back to normal
+      #39300 wr32(16'd0, {22'd0, 10'd500});
+      #200 wr32(16'd0, {22'd0, 10'd303});
+
+      // Change BRAM offset (before previous output is finished)
+      #5000 grad_bram_offset_i = 10;
+      #5000 grad_bram_enb_i = 0;
+      #10 grad_bram_enb_i = 1;
+
+      // // Simulate a 'busy' condition that doesn't stay for very long
+      // #10000 serial_busy_i = 1;
+      // #3000 serial_busy_i = 0;
+      // #10 rd32(16'd16, 32'd0);
+
+      // // Simulate a longer 'busy' condition that will compromise the output integrity
+      // #10000 serial_busy_i = 1;
+      // #10000 serial_busy_i = 0;
+      // #10 rd32(16'd16, 32'd1);
+
+      // Reset core, make sure it resumes correctly
+      #500 rst_n = 0;
+      #10 rst_n = 1;
+
+      // TODO: reset behaviour in response to momentary reset isn't entirely clear.
+
+
+      // Change to the part of the memory with waits
+      #15000 rst_n = 0;
+      grad_bram_offset_i = 8000;
+      grad_bram_enb_i = 0;
+      #10 rst_n = 1;
+      #10 grad_bram_enb_i = 1;
+
+      #200000 if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
+   end // initial begin
+
+   // DAC output checks at specific times
+   integer n, p;
+   initial begin
+      // test readout and speed logic
+      #36405 for (n = 0; n < 9; n = n + 1) begin
+	 check_ocra1(n, 0, 0, 0); #3070;
+      end
+      // check_ocra1(9); #1690; // speed up in the middle of pause
+      // for (n = 10; n < 15; n = n + 1) begin
+      // 	 check_ocra1(n); #40;
+      // end
+      // check_ocra1(15); #3070; // slow down in the middle of pause
+      // for (n = 16; n < 18; n = n + 1) begin
+      // 	 check_ocra1(n); #3070;
+      // end
+      // check_ocra1(18); #840;      
+
+      // // test address reset and offset
+      // for (n = 10; n < 13; n = n + 1) begin
+      // 	 check_ocra1(n); #3070;
+      // end
+
+      // // test busy causing a <1-cycle delay
+      // check_ocra1(13); #3750 check_ocra1(14); #2390; // 3070 +/- 680      
+      // check_ocra1(15); #3070 check_ocra1(16); #3070;
+      // check_ocra1(17); #11530 check_ocra1(20); #750;
+      // for (n = 21; n < 25; n = n + 1) begin
+      // 	 check_ocra1(n); #3070;
+      // end
+      // check_ocra1(25); #2600; // uneven delay just from timing of the reconfiguration
+
+      // // test larger intervals
+      // for (n = 0; n < 16; n = n + 1) begin
+      // 	 check_ocra1({2'd0, n[2:0], 3'd0, 24'd8000 + n[23:0]});
+      // 	 for (p = 0; p <= n[2:0]; p = p + 1) #3070;
+      // end
+   end // initial begin   
 
    // Tasks for AXI bus reads and writes, later interrupt control (if we choose to use it)
    task wr32; //write to bus
-      input [31:0] addr;
-      input [31:0] data;
+      input [31:0] addr, data;
       begin
          #10 s00_axi_wdata = data;
 	 s00_axi_wstrb = 'hf;
@@ -165,13 +284,26 @@ module ocra_grad_ctrl_tb;
                disable axi_write_timeout;
             end
             begin: axi_write_timeout
-               // #10000 disable wait_axi_write;
+               #10000 disable wait_axi_write;
+	       $display("%d ns: AXI write timed out", $time);
             end
          join
          #13 s00_axi_awvalid = 0;
          s00_axi_wvalid = 0;
       end
    endtask // wr32
+
+   task wr32_oc1; // convenience task for encoding ocra1 DAC words
+      input [31:0] bram_address;
+      input [2:0]  extra_wait;
+      input [1:0] channel;
+      input 	  broadcast;
+      input [17:0] dac_v;
+      begin
+	 // 2b spare, 3b extra wait, 2b channel, 1b broadcast, 24b DAC word (see ad5781 datasheet)
+	 wr32(bram_address, {2'd0, extra_wait, channel, broadcast, 4'd1, dac_v, 2'd0});
+      end
+   endtask // wr32_oc1   
 
    task rd32; //read from bus
       input [31:0] addr;
@@ -193,8 +325,31 @@ module ocra_grad_ctrl_tb;
       end
    endtask // rd32
 
-   // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)
-   always #5 clk = !clk;
+   task check_ocra1;
+      input [17:0] exp_x, exp_y, exp_z, exp_z2;
+      begin
+	 if (exp_x != oc1_voutx) begin
+            $display("%d ns: ocra1 X expected %x, read %x.",
+		     $time, exp_x, oc1_voutx);
+            err <= 1'd1;
+	 end
+	 if (exp_y != oc1_vouty) begin
+            $display("%d ns: ocra1 Y expected %x, read %x.",
+		     $time, exp_y, oc1_vouty);
+            err <= 1'd1;
+	 end
+	 if (exp_z != oc1_voutz) begin
+            $display("%d ns: ocra1 Z expected %x, read %x.",
+		     $time, exp_z, oc1_voutz);
+            err <= 1'd1;
+	 end
+	 if (exp_z2 != oc1_voutz2) begin
+            $display("%d ns: ocra1 Z2 expected %x, read %x.",
+		     $time, exp_z2, oc1_voutz2);
+            err <= 1'd1;
+	 end
+      end
+   endtask // check_ocra1   
    
    ocra_grad_ctrl UUT(
 		      /*AUTOINST*/
@@ -256,6 +411,20 @@ module ocra_grad_ctrl_tb;
 		      .s_axi_intr_arprot(s_axi_intr_arprot[2:0]),
 		      .s_axi_intr_arvalid(s_axi_intr_arvalid),
 		      .s_axi_intr_rready(s_axi_intr_rready));
+
+   ocra1_model oc1_model(// Outputs
+			 .voutx			(oc1_voutx),
+			 .vouty			(oc1_vouty),
+			 .voutz			(oc1_voutz),
+			 .voutz2		(oc1_voutz2),
+			 // Inputs
+			 .clk			(oc1_clk_o),
+			 .syncn			(oc1_syncn_o),
+			 .ldacn			(oc1_ldacn_o),
+			 .sdox			(oc1_sdox_o),
+			 .sdoy			(oc1_sdoy_o),
+			 .sdoz			(oc1_sdoz_o),
+			 .sdoz2			(oc1_sdoz2_o));
    
 endmodule // ocra_grad_ctrl_tb
 `endif //  `ifndef _OCRA_GRAD_CTRL_TB_
