@@ -28,7 +28,7 @@
 module ocra_grad_ctrl_tb;
    // Parameters copied from ocra_grad_ctrl for now (duplication of information, I know)
    localparam integer 			      C_S00_AXI_DATA_WIDTH = 32;
-   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 14;
+   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 16;
 
    // Localparams of Axi Slave Bus Interface S_AXI_INTR
    localparam integer 			      C_S_AXI_INTR_DATA_WIDTH = 32;
@@ -47,8 +47,8 @@ module ocra_grad_ctrl_tb;
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
    reg			fhd_sdi_i;		// To UUT of ocra_grad_ctrl.v
+   reg			grad_bram_enb_i;	// To UUT of ocra_grad_ctrl.v
    reg [13:0]		grad_bram_offset_i;	// To UUT of ocra_grad_ctrl.v
-   reg			grad_bram_rst_i;	// To UUT of ocra_grad_ctrl.v
    reg [C_S00_AXI_ADDR_WIDTH-1:0] s00_axi_araddr;// To UUT of ocra_grad_ctrl.v
    reg [2:0]		s00_axi_arprot;		// To UUT of ocra_grad_ctrl.v
    reg			s00_axi_arvalid;	// To UUT of ocra_grad_ctrl.v
@@ -113,7 +113,7 @@ module ocra_grad_ctrl_tb;
       clk = 1;
       rst_n = 0;
       grad_bram_offset_i = 0;
-      grad_bram_rst_i = 1;
+      grad_bram_enb_i = 0;
       fhd_sdi_i = 0;
 
       // Initialise bus-related I/O
@@ -228,7 +228,7 @@ module ocra_grad_ctrl_tb;
 		      .irq		(irq),
 		      // Inputs
 		      .grad_bram_offset_i(grad_bram_offset_i[13:0]),
-		      .grad_bram_rst_i	(grad_bram_rst_i),
+		      .grad_bram_enb_i	(grad_bram_enb_i),
 		      .fhd_sdi_i	(fhd_sdi_i),
 		      .s00_axi_aclk	(s00_axi_aclk),
 		      .s00_axi_aresetn	(s00_axi_aresetn),
