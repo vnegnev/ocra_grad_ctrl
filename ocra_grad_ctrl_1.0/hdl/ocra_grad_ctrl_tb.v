@@ -184,76 +184,115 @@ module ocra_grad_ctrl_tb;
       for (k = 4; k < 100; k = k + 1) begin
 	 channel = k[1:0];
 	 broadcast = !( (k + 1) % 4); // broacast on k=7, k=11, etc
-	 wr32_oc1(16'h8000 + (k << 2), 0, channel, broadcast, k);
-	 // wr32(16'h8000 + (k << 2), {5'd0, channel, broadcast, k});
+	 wr32_oc1(k, 0, channel, broadcast, k);
       end
+      
+      // always write first 4 words of new block with regular
+      // commands, to avoid inadvertently carrying over values from
+      // the previous block (since grad_bram_enb_i gets pulled low
+      // after data has been transferred to the iface, but before it's
+      // been serialised to the DACs)
+      wr32_oc1(1000, 0, 0, 0, 1000);
+      wr32_oc1(1001, 0, 1, 0, 1001);
+      wr32_oc1(1002, 0, 2, 0, 1002);      
+      wr32_oc1(1003, 1, 3, 1, 1003); // wait 1 extra unit before next data is sent
 
       // BRAM writes on only X and Z, each has an extra wait of 1 -
       // leading to a sustained update interval as above, but only for
-      // 2 channels
-      for (k = 1000; k < 1100; k = k + 1) begin
+      // 2 channels      
+      for (k = 1004; k < 1100; k = k + 1) begin
 	 channel = k[0] ? 2 : 0;
 	 broadcast = channel == 2; // broadcast on Z updates
-	 wr32_oc1(16'h8000 + (k << 2), 1, channel, broadcast, k);
+	 wr32_oc1(k, 1, channel, broadcast, k);
       end
 
       // BRAM writes on only Y and Z2, Y has no extra wait and Z2 has
       // an extra wait of 2 - leading to a sustained update interval
-      // as above, but only for 2 channels (alternative way)
-      for (k = 2000; k < 2100; k = k + 1) begin
+      // as above, but only for 2 channels (alternative timing)
+      wr32_oc1(2000, 0, 0, 0, 2000);
+      wr32_oc1(2001, 0, 1, 0, 2001);
+      wr32_oc1(2002, 0, 2, 0, 2002);      
+      wr32_oc1(2003, 2, 3, 1, 2003); // since this is a broadcast, wait 2
+      for (k = 2004; k < 2100; k = k + 1) begin
 	 channel = k[0] ? 3 : 1;
 	 broadcast = channel == 3; // broadcast on Z2 updates
 	 extra_wait = (channel == 3) ? 2 : 0;
-	 wr32_oc1(16'h8000 + (k << 2), extra_wait, channel, broadcast, k);
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
       end
+
+      // BRAM writes on only Z, with extra waits of 3 each time
+      wr32_oc1(3000, 0, 0, 0, 3000);
+      wr32_oc1(3001, 0, 1, 0, 3001);
+      wr32_oc1(3002, 0, 2, 0, 3002);      
+      wr32_oc1(3003, 3, 3, 1, 3003); // since this is a broadcast, wait 2
+      for (k = 3004; k < 3100; k = k + 1) begin
+	 channel = 2; // always Z
+	 broadcast = 1; // always broadcast
+	 extra_wait = 3; // always wait
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
+      end
+
+      // BRAM writes on only Z, with extra waits of 3 each time
+      wr32_oc1(4000, 0, 0, 0, 4000);
+      wr32_oc1(4001, 0, 1, 0, 4001);
+      wr32_oc1(4002, 0, 2, 0, 4002);      
+      wr32_oc1(4003, 0, 3, 1, 4003); // no extra wait, compared to previous inits
+      for (k = 4004; k < 4100; k = k + 1) begin
+	 // switch between a few different update modes in one block
+	 if (k < 4020) begin
+	    channel = k[1:0];
+	    broadcast = channel == 3;
+	    extra_wait = k == 4019 ? 3 : 0; // need an extra wait for the single-channel section
+	 end else if (k < 4026) begin
+	    channel = 0; // always x
+	    broadcast = 1; // always broadcast
+	    extra_wait = k == 4025 ? 1 : 3; // extra waits
+	 end else if (k < 4034) begin
+	    channel = k[0] ? 3 : 0; // x and z2
+	    broadcast = k[0]; // broadcast on z2
+	    extra_wait = k == 4033 ? 0 : 1;
+	 end else begin
+	    // back to 4-channel, but broadcast on a different channel
+	    // (so that output results appear in a different order)
+	    channel = k[1:0];
+	    broadcast = channel == 1;
+	    extra_wait = 0;
+	 end
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
+      end      
 
       // Start outputting data; address 0
       #100 grad_bram_enb_i = 1;
 
-      // change output address; long delay while it's held off to clear the busy state
+      // change output address: 2 channels updated in parallel
       #60000 grad_bram_enb_i = 0;
       grad_bram_offset_i = 1000;
-      #10000 grad_bram_enb_i = 1;
+      #10 grad_bram_enb_i = 1; // long enough pause to avoid it being busy
 
-      // change output address; long delay while it's held off to clear the busy state
+      // change output address: 2 channels updated in parallel, alternate timing
       #50000 grad_bram_enb_i = 0;
       grad_bram_offset_i = 2000;
-      #10000 grad_bram_enb_i = 1;      
-      
-      // Change output rate to be slightly slower, then change back to normal
-      #58820 wr32(16'd0, {22'd0, 10'd500});
-      #10000 wr32(16'd0, {22'd0, 10'd303});
-
-      // Change BRAM offset (before previous output is finished)
-      #5000 grad_bram_offset_i = 10;
-      #5000 grad_bram_enb_i = 0;
       #10 grad_bram_enb_i = 1;
 
-      // // Simulate a 'busy' condition that doesn't stay for very long
-      // #10000 serial_busy_i = 1;
-      // #3000 serial_busy_i = 0;
-      // #10 rd32(16'd16, 32'd0);
+      // change output address, 1 channel updated
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 3000;
+      #10 grad_bram_enb_i = 1;
+      
+      // Change output rate to be faster (5us intervals, sped-up SPI clock)
+      #50000 wr32(16'd4, {26'd0, 6'd19});
+      wr32(16'd0, {22'd0, 10'd121});
 
-      // // Simulate a longer 'busy' condition that will compromise the output integrity
-      // #10000 serial_busy_i = 1;
-      // #10000 serial_busy_i = 0;
-      // #10 rd32(16'd16, 32'd1);
+      // Change output address, 4 channels updated again
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 4000;
+      #10 grad_bram_enb_i = 1;
 
       // Reset core, make sure it resumes correctly
-      #500 rst_n = 0;
+      #50000 rst_n = 0;
       #10 rst_n = 1;
 
-      // TODO: reset behaviour in response to momentary reset isn't entirely clear.
-
-
-      // Change to the part of the memory with waits
-      #15000 rst_n = 0;
-      grad_bram_offset_i = 8000;
-      grad_bram_enb_i = 0;
-      #10 rst_n = 1;
-      #10 grad_bram_enb_i = 1;
-
-      #200000 if (err) begin
+      #100000 if (err) begin
 	 $display("THERE WERE ERRORS");
 	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
       end
@@ -323,14 +362,14 @@ module ocra_grad_ctrl_tb;
    endtask // wr32
 
    task wr32_oc1; // convenience task for encoding ocra1 DAC words
-      input [31:0] bram_address;
+      input [13:0] bram_offset;
       input [2:0]  extra_wait;
       input [1:0] channel;
       input 	  broadcast;
       input [17:0] dac_v;
       begin
 	 // 2b spare, 3b extra wait, 2b channel, 1b broadcast, 24b DAC word (see ad5781 datasheet)
-	 wr32(bram_address, {2'd0, extra_wait, channel, broadcast, 4'd1, dac_v, 2'd0});
+	 wr32(16'h8000 + (bram_offset << 2), {2'd0, extra_wait, channel, broadcast, 4'd1, dac_v, 2'd0});
       end
    endtask // wr32_oc1   
 

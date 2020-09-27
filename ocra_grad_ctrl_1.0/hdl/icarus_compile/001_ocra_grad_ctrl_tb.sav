@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sun Sep 27 14:27:51 2020
+[*] Sun Sep 27 18:46:29 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra_grad_ctrl_tb.lxt"
-[dumpfile_mtime] "Sun Sep 27 14:25:57 2020"
-[dumpfile_size] 300567
+[dumpfile_mtime] "Sun Sep 27 18:45:20 2020"
+[dumpfile_size] 300488
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra_grad_ctrl_tb.sav"
-[timestart] 0
+[timestart] 317210
 [size] 1920 1025
 [pos] -1 -1
-*-16.157078 38450 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-13.084414 360500 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra_grad_ctrl_tb.
 [treeopen] ocra_grad_ctrl_tb.UUT.
 [sst_width] 280
@@ -20,10 +20,13 @@
 ocra_grad_ctrl_tb.clk[0]
 ocra_grad_ctrl_tb.rst_n[0]
 ocra_grad_ctrl_tb.grad_bram_enb_i[0]
-@22
+@24
 ocra_grad_ctrl_tb.grad_bram_offset_i[13:0]
 @28
 ocra_grad_ctrl_tb.UUT.busy[0]
+ocra_grad_ctrl_tb.UUT.fhd_busy[0]
+@29
+ocra_grad_ctrl_tb.UUT.oc1_busy[0]
 @200
 -
 -ocra1 DAC outputs
@@ -39,10 +42,6 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg0[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg1[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg2[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg3[31:0]
-ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg4[31:0]
-ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg5[31:0]
-ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg6[31:0]
-ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg7[31:0]
 @200
 -
 -grad_bram
@@ -52,7 +51,6 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.valid_o[0]
 @200
 -
-@201
 -ocra1
 @28
 ocra_grad_ctrl_tb.oc1_clk_o[0]

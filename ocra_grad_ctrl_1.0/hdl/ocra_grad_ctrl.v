@@ -123,7 +123,7 @@ module ocra_grad_ctrl #
    wire [5:0] 				      spi_clk_div;
    wire 				      clk = s00_axi_aclk; // alias
    wire 				      oc1_busy, fhd_busy;
-   wire 				      busy = oc1_busy || fhd_busy;
+   wire 				      busy = oc1_busy; // || fhd_busy; // TODO: re-include fhd_busy once logic works
    
    // Instantiation of Axi Bus Interface S00_AXI
    grad_bram # ( 
