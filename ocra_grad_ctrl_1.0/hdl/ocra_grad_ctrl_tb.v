@@ -302,10 +302,32 @@ module ocra_grad_ctrl_tb;
    // DAC output checks at specific times
    integer n, p;
    initial begin
-      // test readout and speed logic
-      #36405 for (n = 0; n < 9; n = n + 1) begin
-	 check_ocra1(n, 0, 0, 0); #3070;
+      #44615 check_ocra1(0,0,0,0);
+      #10 for (n = 4; n < 20; n = n + 4) begin
+	 check_ocra1(n, n+1, n+2, n+3); #12300;
       end
+      check_ocra1(1000, 1001, 1002, 1003); #12300;
+      check_ocra1(1004, 1001, 1005, 1003); #12300;
+      check_ocra1(1006, 1001, 1007, 1003); #12300;
+      check_ocra1(1008, 1001, 1009, 1003);
+
+      #16240 check_ocra1(2000, 2001, 2002, 2003); #12300;
+      check_ocra1(2000, 2004, 2002, 2005); #12300;
+      check_ocra1(2000, 2006, 2002, 2007); #12300;
+      check_ocra1(2000, 2008, 2002, 2009);
+
+      #16240 check_ocra1(3000, 3001, 3002, 3003); #12300;
+      check_ocra1(3000, 3001, 3004, 3003); #12300;
+      check_ocra1(3000, 3001, 3005, 3003); #7820;
+      for (n = 3006; n < 3014; n = n + 1) begin
+	 check_ocra1(3000, 3001, n, 3003); #5000;
+      end
+
+      
+	 
+      // #36405 for (n = 0; n < 9; n = n + 1) begin
+      // 	 check_ocra1(n, 0, 0, 0); #3070;
+      // end
       // check_ocra1(9); #1690; // speed up in the middle of pause
       // for (n = 10; n < 15; n = n + 1) begin
       // 	 check_ocra1(n); #40;
