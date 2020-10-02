@@ -28,6 +28,7 @@
 
 module ocra1_iface(
 		   input 	clk,
+		   input 	rst_n, // not used for anything other than data_present flag for now
 
 		   // data words from gradient memory core
 		   input [31:0] data_i, // bits 26:25: target channel, bit 24: broadcast/transmit, 
@@ -41,13 +42,14 @@ module ocra1_iface(
 		   // OCRA1 interface (startup values are set here as well)
 		   output reg 	oc1_clk_o = 0,
 		   output reg 	oc1_syncn_o = 1,
-		   output reg 	oc1_ldacn_o = 0,
+		   output reg 	oc1_ldacn_o = 1,
 		   output reg 	oc1_sdox_o = 0,
 		   output reg 	oc1_sdoy_o = 0,
 		   output reg 	oc1_sdoz_o = 0,
 		   output reg 	oc1_sdoz2_o = 0,
 
-		   output reg 	busy_o = 0 // should be held high while module is carrying out an SPI transfer
+		   output reg 	busy_o = 0, // should be held high while module is carrying out an SPI transfer
+		   output reg 	data_lost_o = 0
 		   );
 
    // 122.88 -> 3.84 MHz clock freq - ~150 ksps update rate possible
@@ -65,12 +67,13 @@ module ocra1_iface(
    reg [1:0] 			channel_r = 0;
    reg [23:0] 			datax_r = 0, datay_r = 0, dataz_r = 0, dataz2_r = 0; // used for SPI output
    reg [23:0] 			datax_r2 = 0, datay_r2 = 0, dataz_r2 = 0, dataz2_r2 = 0; // used for temp storage
+   reg [3:0] 			data_present = 0;
    
    always @(posedge clk) begin
       // default assignments, which will take place unless overridden by other assignments in the FSM
 //       oc1_clk_o <= 1;
       oc1_syncn_o <= 0;
-      oc1_ldacn_o <= 0;
+      oc1_ldacn_o <= 1;
       busy_o <= 1;
 
       spi_clk_div_r <= spi_clk_div_i;
@@ -84,8 +87,14 @@ module ocra1_iface(
 	 broadcast_r <= data_i[24];
 	 channel_r <= data_i[26:25];
       end
-      
+
       if (valid_r) begin
+	 // Save the fact that now there's data in the register. If
+	 // there was already data present in the relevant register
+	 // that hadn't yet been sent out, flag a data-lost error.
+	 data_present[channel_r] <= 1'd1;
+	 data_lost_o <= data_present[channel_r];
+	 
 	 case (channel_r)
 	   2'b00: datax_r2 <= payload_r;
 	   2'b01: datay_r2 <= payload_r;
@@ -97,6 +106,8 @@ module ocra1_iface(
 	   // default: dataz2_r <= payload_r;
 	 endcase // case (channel_r)
       end
+
+      if (!rst_n) data_present <= 4'd0; // assume that there's no valid data present after a reset
       
       // could use a wire, but deliberately adding a clocked register stage to help with timing
       {oc1_sdox_o, oc1_sdoy_o, oc1_sdoz_o, oc1_sdoz2_o} <= {datax_r[23], datay_r[23], dataz_r[23], dataz2_r[23]};
@@ -107,6 +118,8 @@ module ocra1_iface(
 	   busy_o <= 0;
 	   state <= IDLE;
 	   if (broadcast_r2) begin
+	      data_present <= 4'd0;
+	      data_lost_o <= 0;
 	      {datax_r, datay_r, dataz_r, dataz2_r} <= {datax_r2, datay_r2, dataz_r2, dataz2_r2};
 	      state <= START;
 	   end
@@ -116,7 +129,7 @@ module ocra1_iface(
 	   state <= IDLE;
 	end
 	default: begin // covers the START state and all the states down to 0	   
-	   oc1_clk_o <= div_ctr < spi_clk_edge_div; //
+	   oc1_clk_o <= div_ctr <= spi_clk_edge_div;
 	   // divisor logic	  
 	   if (div_ctr == spi_clk_div_i) begin
 	      div_ctr <= 0;

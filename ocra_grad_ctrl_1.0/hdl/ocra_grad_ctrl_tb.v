@@ -160,14 +160,14 @@ module ocra_grad_ctrl_tb;
 
       // Carry out similar tests to those in grad_bram_tb
       #10 wr32(16'd4, {26'd0, 6'd30}); // reg 1: LSBs set SPI clock divisor
-      wr32(16'd8, 32'hcafebabe); // reg 2
+      wr32(16'd8, 32'h00000001); // reg 2: enable ocra1, but disable gpa-fhdo for now
       wr32(16'd12, 32'habcd0123); // reg 3
       wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
 
       // register readback tests
       #10 rd32(16'd0, {22'd0, 10'd303});
       rd32(16'd4, {26'd0, 6'd30});
-      rd32(16'd8, 32'hcafebabe);
+      rd32(16'd8, 32'h00000001);
       rd32(16'd12, 32'habcd0123);
       rd32(16'd16, 32'd0);
       
@@ -259,7 +259,18 @@ module ocra_grad_ctrl_tb;
 	    extra_wait = 0;
 	 end
 	 wr32_oc1(k, extra_wait, channel, broadcast, k);
-      end      
+      end // for (k = 4004; k < 4100; k = k + 1)
+
+      // Extra test write to generate a data-loss error
+      wr32_oc1(5000, 0, 0, 0, 5000);
+      wr32_oc1(5001, 0, 1, 0, 5001);
+      wr32_oc1(5002, 0, 2, 0, 5002);      
+      wr32_oc1(5003, 0, 3, 1, 5003);
+      wr32_oc1(5004, 0, 0, 0, 5004); // this data should get lost
+      wr32_oc1(5005, 0, 1, 0, 5005);
+      wr32_oc1(5006, 0, 2, 0, 5006);      
+      wr32_oc1(5007, 0, 3, 1, 5007);
+      wr32_oc1(5008, 0, 0, 0, 5008);
 
       // Start outputting data; address 0
       #100 grad_bram_enb_i = 1;
@@ -292,6 +303,13 @@ module ocra_grad_ctrl_tb;
       #50000 rst_n = 0;
       #10 rst_n = 1;
 
+      // Test data lost error TODO: continue here -- data lost error
+      // only occurs when grad_bram_enb_i is held low for too short a
+      // time
+      #67500 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 5000;
+      #10 grad_bram_enb_i = 1;
+
       #100000 if (err) begin
 	 $display("THERE WERE ERRORS");
 	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
@@ -302,7 +320,7 @@ module ocra_grad_ctrl_tb;
    // DAC output checks at specific times
    integer n, p;
    initial begin
-      #44615 check_ocra1(0,0,0,0);
+      #44885 check_ocra1(0,0,0,0);
       #10 for (n = 4; n < 20; n = n + 4) begin
 	 check_ocra1(n, n+1, n+2, n+3); #12300;
       end
@@ -340,11 +358,11 @@ module ocra_grad_ctrl_tb;
       end
       
       // update out-of-order
-      for (n = 4034; n < 4086; n = n + 4) begin
+      for (n = 4034; n < 4062; n = n + 4) begin
 	 check_ocra1(n + 2, n + 3, n, n + 1); #5000;
       end
 	 
-      // TODO: gpa-fhdo tests
+      // // TODO: gpa-fhdo tests
       
    end // initial begin   
 
@@ -504,6 +522,14 @@ module ocra_grad_ctrl_tb;
 			 .sdoy			(oc1_sdoy_o),
 			 .sdoz			(oc1_sdoz_o),
 			 .sdoz2			(oc1_sdoz2_o));
+
+   // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
+   wire [31:0] bram_a0 = UUT.grad_bram_inst.grad_brams[0],
+	       bram_a1 = UUT.grad_bram_inst.grad_brams[1],
+	       bram_a1024 = UUT.grad_bram_inst.grad_brams[1024],
+	       bram_a5004 = UUT.grad_bram_inst.grad_brams[5004],
+	       bram_a8000 = UUT.grad_bram_inst.grad_brams[8000],
+	       bram_amax = UUT.grad_bram_inst.grad_brams[8191];
    
 endmodule // ocra_grad_ctrl_tb
 `endif //  `ifndef _OCRA_GRAD_CTRL_TB_

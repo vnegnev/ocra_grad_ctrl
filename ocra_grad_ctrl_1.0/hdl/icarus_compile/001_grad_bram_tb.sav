@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sun Sep 27 10:58:08 2020
+[*] Sat Oct 10 14:38:45 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_grad_bram_tb.lxt"
-[dumpfile_mtime] "Sun Sep 27 10:57:47 2020"
-[dumpfile_size] 188514
+[dumpfile_mtime] "Sat Oct 10 14:37:36 2020"
+[dumpfile_size] 188804
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_grad_bram_tb.sav"
 [timestart] 0
 [size] 1920 1025
-[pos] -1 -1
-*-16.157171 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 2559 359
+*-16.157171 239300 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] grad_bram_tb.
 [sst_width] 230
 [signals_width] 259
@@ -26,7 +26,7 @@ grad_bram_tb.data_enb_i[0]
 grad_bram_tb.data_o[31:0]
 @28
 grad_bram_tb.valid_o[0]
-@25
+@24
 grad_bram_tb.spi_clk_div_o[5:0]
 @200
 -
@@ -48,6 +48,10 @@ grad_bram_tb.UUT.data_interval_done[0]
 grad_bram_tb.UUT.data_interval_done_r[0]
 grad_bram_tb.UUT.data_interval_done_r2[0]
 grad_bram_tb.UUT.data_interval_done_p[0]
+grad_bram_tb.UUT.serial_busy_i[0]
+@29
+grad_bram_tb.UUT.data_lost_i[0]
+@28
 grad_bram_tb.UUT.state[1:0]
 @200
 -

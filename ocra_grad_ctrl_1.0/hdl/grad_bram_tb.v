@@ -33,6 +33,7 @@ module grad_bram_tb;
    // Width of S_AXI address bus
    parameter integer C_S_AXI_ADDR_WIDTH = 16;
    reg 		     err = 0;
+   reg [3:0] 	     valid_mask = 4'b1111;
 		     
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
@@ -50,6 +51,7 @@ module grad_bram_tb;
    reg [(C_S_AXI_DATA_WIDTH/8)-1:0] S_AXI_WSTRB;// To UUT of grad_bram.v
    reg			S_AXI_WVALID;		// To UUT of grad_bram.v
    reg			data_enb_i;		// To UUT of grad_bram.v
+   reg			data_lost_i;		// To UUT of grad_bram.v
    reg [15:0]		offset_i;		// To UUT of grad_bram.v
    reg			serial_busy_i;		// To UUT of grad_bram.v
    // End of automatics
@@ -66,7 +68,7 @@ module grad_bram_tb;
    wire			S_AXI_WREADY;		// From UUT of grad_bram.v
    wire [31:0]		data_o;			// From UUT of grad_bram.v
    wire [5:0]		spi_clk_div_o;		// From UUT of grad_bram.v
-   wire			valid_o;		// From UUT of grad_bram.v
+   wire [3:0]		valid_o;		// From UUT of grad_bram.v
    // End of automatics
 
    // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)   
@@ -96,18 +98,19 @@ module grad_bram_tb;
       data_enb_i = 0;
       offset_i = 0;
       serial_busy_i = 0;
+      data_lost_i = 0;
 
       #107 S_AXI_ARESETN = 1; // extra 7ns to ensure that TB stimuli occur a bit before the positive clock edges
       S_AXI_BREADY = 1; // TODO: make this more fine-grained if bus reads/writes don't work properly in hardware
       #10 wr32(16'd4, {26'd0, 6'd30}); // reg 1: LSBs set SPI clock divisor
-      wr32(16'd8, 32'hcafebabe); // reg 2
+      wr32(16'd8, {28'hcafebee, valid_mask}); // reg 2; note the final F
       wr32(16'd12, 32'habcd0123); // reg 3
       wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
 
       // register readback tests
       #10 rd32(16'd0, {22'd0, 10'd303});
       rd32(16'd4, {26'd0, 6'd30});
-      rd32(16'd8, 32'hcafebabe);
+      rd32(16'd8, 32'hcafebeef);
       rd32(16'd12, 32'habcd0123);
       rd32(16'd16, 32'd0);
 
@@ -133,15 +136,25 @@ module grad_bram_tb;
       #5000 data_enb_i = 0;
       #10 data_enb_i = 1;
 
-      // Simulate a 'busy' condition that doesn't stay for very long
-      #10000 serial_busy_i = 1;
-      #3000 serial_busy_i = 0;
-      #10 rd32(16'd16, 32'd0);
+      // Simulate a 'busy' blip
+      #200 serial_busy_i = 1;
+      #10 serial_busy_i = 0;
+      #10 rd32(16'd16, {16'd0, 16'd11}); // no error bits
+
+      // Data error blip
+      #660 data_lost_i = 1;
+      #10 data_lost_i = 0;
+      #10 rd32(16'd16, {16'd2, 16'd11});
+
+      // Simulate a 'busy' condition that stays for a while, and a data lost error at the same time
+      #9000 serial_busy_i = 1; data_lost_i = 1;
+      #3000 serial_busy_i = 0; data_lost_i = 0;
+      #10 rd32(16'd16, {16'd3, 16'd15});
 
       // Simulate a longer 'busy' condition that will compromise the output integrity
       #10000 serial_busy_i = 1;
       #10000 serial_busy_i = 0;
-      #10 rd32(16'd16, 32'd1);
+      #10 rd32(16'd16, {16'd1, 16'd21});
 
       // Reset core, make sure it resumes correctly
       #500 S_AXI_ARESETN = 0;
@@ -187,15 +200,26 @@ module grad_bram_tb;
       	 check_output(n); #3070;
       end
 
-      // test busy causing a <1-cycle delay
-      check_output(13); #3750 check_output(14); #2390; // 3070 +/- 680      
+      // test busy causing a skipped valid output
+      check_output(13); 
+      #3070 if (valid_o == valid_mask) begin
+	 $display("%d ns: valid_o high, expected low due to serial_busy_i", $time);
+	 err <= 1;
+      end
+      #3070;
       check_output(15); #3070 check_output(16); #3070;
-      check_output(17); #11530 check_output(20); #750;
+      check_output(17); #3070;
+      for (n = 0; n < 3; n = n + 1) begin
+	 if (valid_o == valid_mask) begin
+	    $display("%d ns: valid_o high, expected low due to serial_busy_i", $time);
+	    err <= 1;
+	 end
+	 #3070;
+      end
       for (n = 21; n < 25; n = n + 1) begin
-      	 check_output(n); #3070;
+	 check_output(n); #3070;
       end
       check_output(25); #2600; // uneven delay just from timing of the reconfiguration
-
       // test larger intervals
       for (n = 0; n < 16; n = n + 1) begin
 	 check_output({2'd0, n[2:0], 3'd0, 24'd8000 + n[23:0]});
@@ -250,7 +274,7 @@ module grad_bram_tb;
    task check_output;
       input[31:0] expected;
       begin
-	 if (!valid_o) begin
+	 if (valid_o == 0) begin
 	    $display("%d ns: valid_o low, expected high", $time);
 	    err <= 1;
 	 end
@@ -264,7 +288,7 @@ module grad_bram_tb;
    grad_bram UUT(/*AUTOINST*/
 		 // Outputs
 		 .data_o		(data_o[31:0]),
-		 .valid_o		(valid_o),
+		 .valid_o		(valid_o[3:0]),
 		 .spi_clk_div_o		(spi_clk_div_o[5:0]),
 		 .S_AXI_AWREADY		(S_AXI_AWREADY),
 		 .S_AXI_WREADY		(S_AXI_WREADY),
@@ -278,6 +302,7 @@ module grad_bram_tb;
 		 .offset_i		(offset_i[15:0]),
 		 .data_enb_i		(data_enb_i),
 		 .serial_busy_i		(serial_busy_i),
+		 .data_lost_i		(data_lost_i),
 		 .S_AXI_ACLK		(S_AXI_ACLK),
 		 .S_AXI_ARESETN		(S_AXI_ARESETN),
 		 .S_AXI_AWADDR		(S_AXI_AWADDR[C_S_AXI_ADDR_WIDTH-1:0]),
@@ -293,7 +318,7 @@ module grad_bram_tb;
 		 .S_AXI_RREADY		(S_AXI_RREADY));
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
-   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_a8000 = UUT.grad_bram[8000], bram_amax = UUT.grad_bram[8191];
+   wire [31:0] bram_a0 = UUT.grad_brams[0], bram_a1 = UUT.grad_brams[1], bram_a1024 = UUT.grad_brams[1024], bram_a8000 = UUT.grad_brams[8000], bram_amax = UUT.grad_brams[8191];
    wire [23:0] data_o_lower = data_o[23:0]; // to avoid all 32 bits; just for visual debugging
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_

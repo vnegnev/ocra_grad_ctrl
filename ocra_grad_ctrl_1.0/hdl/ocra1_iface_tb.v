@@ -34,6 +34,7 @@ module ocra1_iface_tb;
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
    reg			clk;			// To UUT of ocra1_iface.v
    reg [31:0]		data_i;			// To UUT of ocra1_iface.v
+   reg			rst_n;			// To UUT of ocra1_iface.v
    reg [5:0]		spi_clk_div_i;		// To UUT of ocra1_iface.v
    reg			valid_i;		// To UUT of ocra1_iface.v
    // End of automatics
@@ -41,6 +42,7 @@ module ocra1_iface_tb;
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
    wire			busy_o;			// From UUT of ocra1_iface.v
+   wire			data_lost_o;		// From UUT of ocra1_iface.v
    wire			ldacn;			// From UUT of ocra1_iface.v
    wire			sclk;			// From UUT of ocra1_iface.v
    wire			sdox;			// From UUT of ocra1_iface.v
@@ -53,6 +55,8 @@ module ocra1_iface_tb;
    wire [17:0]		voutz;			// From OCRA1 of ocra1_model.v
    wire [17:0]		voutz2;			// From OCRA1 of ocra1_model.v
    // End of automatics
+
+   reg 			err = 0;
    
    initial begin
       $dumpfile("icarus_compile/000_ocra1_iface_tb.lxt");
@@ -60,6 +64,7 @@ module ocra1_iface_tb;
 
       // initialisation
       clk = 1;
+      rst_n = 1;
       data_i = 0;
       valid_i = 0;
       spi_clk_div_i = 32;
@@ -67,29 +72,52 @@ module ocra1_iface_tb;
       #100 send(24'h200002, 24'h200002, 24'h200002, 24'h200002); // initialise all DACs
       #10000 sendV(1,2,3,4);
       #10000 sendV(5,6,7,8);
-      #10000 sendV(-1,-2,-3,-4);      
+      #10000 sendV(-1,-2,-3,-4);
 
-      #10000 $finish;
+      #10000 spi_clk_div_i = 1;
+      #100 sendV(1,2,3,4); // extra 5 ticks built in
+      #450 sendV(5,6,7,8);
+      #450 sendV(-1,-2,-3,-4);
+
+      // create a data-lost error
+      #10000 valid_i = 1;
+      data_i = {5'd0, 2'd0, 1'd0, 24'd1234}; // this will get lost
+      #40 rst_n = 0;
+      #10 rst_n = 1;
+      #10 data_i = {5'd0, 2'd0, 1'd1, 24'd5678}; // this will get sent
+      // #10 rst_n = 1; // this will clear the data-lost error
+      // #10 rst_n = 1;
+      #10 valid_i = 0;
+
+      #10000 if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
    end // initial begin
 
    // check voltages
    initial begin
-      #16556 checkV(0,0,0,0);
-      #8 checkV(1,2,3,4);
+      #18145 checkV(0,0,0,0);
+      #10 checkV(1,2,3,4);
    end
    initial begin
-      #26604 checkV(1,2,3,4);
-      #8 checkV(5,6,7,8);
+      #28195 checkV(1,2,3,4);
+      #10 checkV(5,6,7,8);
    end
    initial begin
-      #36660 checkV(5,6,7,8);
-      #8 checkV(-1,-2,-3,-4);
-   end   
+      #38245 checkV(5,6,7,8);
+      #10 checkV(-1,-2,-3,-4);
+   end
+   // check data_lost
+   initial #51475 if (!data_lost_o) begin
+      $display("%d ns: expected data_lost high.", $time);
+      err <= 1;
+   end
 
    task send; // send data to OCRA1 interface core
       input [23:0] inx, iny, inz, inz2;
       begin
-	 // TODO: perform a check to see whether the busy line is set before trying to send data
 	 #10 data_i = {5'd0, 2'd0, 1'd0, inx};
 	 valid_i = 1; 
 	 #10 data_i = {5'd0, 2'd1, 1'd0, iny};
@@ -109,14 +137,26 @@ module ocra1_iface_tb;
    task checkV;
       input [17:0] vx, vy, vz, vz2;
       begin
-	 if (voutx != vx) $display("%d ns: X expected %x, read %x.", $time, vx, voutx);
-	 if (vouty != vy) $display("%d ns: Y expected %x, read %x.", $time, vy, vouty);
-	 if (voutz != vz) $display("%d ns: Z expected %x, read %x.", $time, vz, voutz);
-	 if (voutz2 != vz2) $display("%d ns: Z2 expected %x, read %x.", $time, vz2, voutz2);
+	 if (voutx != vx) begin
+	    $display("%d ns: X expected %x, read %x.", $time, vx, voutx);
+	    err <= 1;
+	 end
+	 if (vouty != vy) begin
+	    $display("%d ns: Y expected %x, read %x.", $time, vy, vouty);	    
+	    err <= 1;
+	 end
+	 if (voutz != vz) begin
+	    $display("%d ns: Z expected %x, read %x.", $time, vz, voutz);	    
+	    err <= 1;
+	 end
+	 if (voutz2 != vz2) begin
+	    $display("%d ns: Z2 expected %x, read %x.", $time, vz2, voutz2);	    
+	    err <= 1;
+	 end
       end
    endtask // checkV   
 
-   always #4 clk = !clk; // 125 MHz clock
+   always #5 clk = !clk; // 100 MHz clock
 
    ocra1_iface UUT(
 		   // Outputs
@@ -130,8 +170,10 @@ module ocra1_iface_tb;
 		   /*AUTOINST*/
 		   // Outputs
 		   .busy_o		(busy_o),
+		   .data_lost_o		(data_lost_o),
 		   // Inputs
 		   .clk			(clk),
+		   .rst_n		(rst_n),
 		   .data_i		(data_i[31:0]),
 		   .valid_i		(valid_i),
 		   .spi_clk_div_i	(spi_clk_div_i[5:0]));

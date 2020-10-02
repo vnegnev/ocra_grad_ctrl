@@ -119,11 +119,21 @@ module ocra_grad_ctrl #
 
    // Interface connections
    wire [31:0] 				      data;
-   wire 				      data_valid;
+   wire [3:0]				      data_valid;
+   wire 				      oc1_data_valid = data_valid[0], gpa_fhdo_data_valid = data_valid[1];
    wire [5:0] 				      spi_clk_div;
    wire 				      clk = s00_axi_aclk; // alias
    wire 				      oc1_busy, fhd_busy;
-   wire 				      busy = oc1_busy; // || fhd_busy; // TODO: re-include fhd_busy once logic works
+   wire 				      oc1_data_lost;
+
+   // for the ocra1, data can be written even while it's outputting to
+   // SPI - for the fhd, this isn't the case. So, don't use the
+   // oc1_busy line for the below check, since it would mean that
+   // false errors would get flagged. To avoid potential bugs in
+   // gpa_fhdo_iface, make sure that it's actually enabled for its
+   // busy to have an impact on execution.
+   wire 				      busy = fhd_busy & gpa_fhdo_data_valid;
+   wire 				      data_lost = oc1_data_lost;
    
    // Instantiation of Axi Bus Interface S00_AXI
    grad_bram # ( 
@@ -155,7 +165,8 @@ module ocra_grad_ctrl #
 
 		   .offset_i({2'd0, grad_bram_offset_i}),
 		   .data_enb_i(grad_bram_enb_i),
-		   .serial_busy_i(1'd0),
+		   .serial_busy_i(busy),
+		   .data_lost_i(data_lost),
 		   .data_o(data),
 		   .valid_o(data_valid),
 		   .spi_clk_div_o(spi_clk_div)
@@ -172,10 +183,12 @@ module ocra_grad_ctrl #
 			 .oc1_sdoz_o	(oc1_sdoz_o),
 			 .oc1_sdoz2_o	(oc1_sdoz2_o),
 			 .busy_o       	(oc1_busy),
+			 .data_lost_o   (oc1_data_lost),
 			 // Inputs
 			 .clk		(clk),
+			 .rst_n         (grad_bram_enb_i), // purely for clearing data_lost for initial word
 			 .data_i       	(data),
-			 .valid_i      	(data_valid),
+			 .valid_i      	(oc1_data_valid),
 			 .spi_clk_div_i	(spi_clk_div));
    
    gpa_fhdo_iface gpa_fhdo_if (
@@ -188,7 +201,7 @@ module ocra_grad_ctrl #
 			       .clk		(clk),
 			       .data_i		(data),
 			       .spi_clk_div_i	(spi_clk_div),
-			       .valid_i		(data_valid),
+			       .valid_i		(gpa_fhdo_data_valid),
 			       .fhd_sdi_i	(fhd_sdi_i));
 
    // Instantiation of Axi Bus Interface S_AXI_INTR

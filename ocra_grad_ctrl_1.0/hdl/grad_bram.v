@@ -50,9 +50,10 @@ module grad_bram #
     // Users to add ports here
     input [15:0] 			 offset_i, // BRAM address offset, when data output is started
     input 				 data_enb_i, // enable data outputs (i.e. run gradient waveforms)
-    input 				 serial_busy_i, // serialiser/s busy with last data output
+    input 				 serial_busy_i, // serialiser/s still busy with last data output, cannot accept more
+    input 				 data_lost_i, // serialiser/s have lost some data
     output reg [31:0] 			 data_o, // Gradient data
-    output reg 				 valid_o, // Gradient data valid
+    output reg [3:0] 			 valid_o, // Gradient data valid; 4 bits for different potential serialisers
     output [5:0] 			 spi_clk_div_o,
 
     // User ports end
@@ -145,7 +146,8 @@ module grad_bram #
    //-- Number of Slave Registers 8
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg0 = {22'd0, 10'd303}; // 10 LSBs: interval sample rate divisor (governs DAC's ksps)
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg1 = {26'd0, 6'd32}; // 6 LSBs: SPI clock divisor for ocra1 iface (governs SPI clock speed)
-   reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg2;
+   reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg2 = {28'd0, 4'b1111}; // selectively enable/disable serialisers
+   wire [3:0] 				      valid_enb = slv_reg2[3:0];
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg3;
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg4 = 0; // read-only
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg5;
@@ -239,10 +241,11 @@ module grad_bram #
    // and the slave is ready to accept the write address and write data.
    assign slv_reg_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 
-   reg [31:0] grad_bram [2**OPT_MEM_ADDR_BITS-1:0]; // main BRAM; 8192 locations by default
+   reg [31:0] grad_brams [2**OPT_MEM_ADDR_BITS-1:0]; // main BRAM; 8192 locations by default
    reg [31:0] grad_bram_wdata = 0, grad_bram_wdata_r = 0; // pipelining
    reg 	      grad_bram_wen = 0, grad_bram_wen_r = 0, grad_bram_rd = 0, grad_bram_rd_r1 = 0, grad_bram_rd_r2 = 0; // pipelining
    reg [OPT_MEM_ADDR_BITS-1:0] grad_bram_waddr = 0, grad_bram_waddr_r = 0, grad_bram_raddr = 0, grad_bram_raddr_r = 0; // pipelining
+   reg [15:0] 		       grad_bram_raddr_r2; // pipelining; purely used for status checks
    reg [31:0] 		       grad_bram_rdata = 0, grad_bram_rdata_r = 0, grad_bram_rdata_r2 = 0;
    wire [OPT_MEM_ADDR_BITS:0] axi_addr = axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS : ADDR_LSB];
    // SPI clock divisor
@@ -253,7 +256,7 @@ module grad_bram #
 
       // defaults and pipelining
       grad_bram_wen <= 0;
-      if (grad_bram_wen) grad_bram[grad_bram_waddr] <= grad_bram_wdata;
+      if (grad_bram_wen) grad_brams[grad_bram_waddr] <= grad_bram_wdata;
    
       if (slv_reg_wen) begin
 	 if (axi_addr[OPT_MEM_ADDR_BITS]) begin // upper range: write to BRAM
@@ -295,7 +298,7 @@ module grad_bram #
    wire       data_wait_done = data_wait_cnt == data_wait_max;
    reg 	      data_wait_done_r = 0;
    wire       data_int_and_wait_done = data_wait_done_r && data_interval_done_p;
-   reg 	      busy_error = 0;
+   reg 	      busy_error = 0, busy_error_r = 0, data_lost_error_r = 0; // latter two are latches
 
    localparam IDLE = 0, READ = 1, BUSY = 2;
    reg [1:0]  state = IDLE;
@@ -304,6 +307,7 @@ module grad_bram #
       // pipelining
       {grad_bram_rd_r2, grad_bram_rd_r1} <= {grad_bram_rd_r1, grad_bram_rd};
       grad_bram_raddr_r <= grad_bram_raddr;
+      grad_bram_raddr_r2 <= grad_bram_raddr_r; // extended to 16b; still a 32b address rather than a byte address
       // pipelining, to avoid busy-vs-done logic issues
       {data_interval_done_r2, data_interval_done_r} <= {data_interval_done_r, data_interval_done};
       data_interval_done_p <= !data_interval_done_r2 && data_interval_done_r; // capture posedges, to ensure it's high for only 1 cycle
@@ -332,27 +336,17 @@ module grad_bram #
       grad_bram_rd <= 0; // default
       valid_o <= 0; // default
       // always read from BRAM
-      grad_bram_rdata <= grad_bram[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
+      grad_bram_rdata <= grad_brams[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
       grad_bram_rdata_r <= grad_bram_rdata;
       case (state)
 	READ: begin
-	   if (serial_busy_i) begin // make sure busy ends before next cycle is meant to begin
-	      state <= BUSY;
-	   end else begin // output data immediately
-	      valid_o <= 1;
-	      state <= IDLE;
+	   if (serial_busy_i) begin
+	      busy_error <= 1; // make sure busy ends before next cycle is meant to begin
+	   end else begin
+	      busy_error <= 0;
+	      valid_o <= valid_enb; // output data immediately
 	   end
-	end
-	BUSY: begin // remain in this state unless the busy condition ends or the window to send data is over
-	   if (!serial_busy_i) begin
-	      valid_o <= 1;
-	      state <= IDLE;
-	   end else if (data_interval_done_r) begin
-	      // check occurs two clock cycles before usual data output, to avoid possible race condition
-	      // save the error condition; missed output word
-	      busy_error <= 1;
-	      state <= IDLE;
-	   end else state <= BUSY;
+	   state <= IDLE;
 	end
 	default: begin // IDLE state
 	   // if (data_interval_done_p) begin
@@ -362,12 +356,11 @@ module grad_bram #
 	      data_wait_max <= {13'd0, grad_bram_rdata_r[29:27]}; // TODO: implement longer delays using grad_bram_data_r[30]
 	      grad_bram_raddr <= grad_bram_raddr + 1; // next address
 	   end
-	   if (!S_AXI_ARESETN) busy_error <= 0; // clear busy errors if core is reset
 	end
       endcase // case (state)
      
-      // Slave register 4 will contain monitoring info; just the busy error for now
-      slv_reg4 <= {31'd0, busy_error};
+      // Slave register 4 will contain monitoring info
+      slv_reg4 <= {14'd0, data_lost_error_r, busy_error_r, grad_bram_raddr_r2};
    end
    
    // VN: below is left in for reference, but won't be used in its current form
@@ -548,20 +541,28 @@ module grad_bram #
       endcase
    end
 
-   // Output register or memory read data
+   // Output register or memory read data, and error bits
    always @( posedge S_AXI_ACLK ) begin
-      if ( S_AXI_ARESETN == 1'b0 ) axi_rdata  <= 0;
-      else begin    
+      if ( !S_AXI_ARESETN ) begin
+	 data_lost_error_r <= 0;
+	 busy_error_r <= 0;
+      end else begin
 	 // When there is a valid read address (S_AXI_ARVALID) with 
 	 // acceptance of read address by the slave (axi_arready), 
-	 // output the read dada 
-	 if (slv_reg_rden) axi_rdata <= reg_data_out;     // register read data
+	 // output the read data 
+	 if (slv_reg_rden) begin
+	    axi_rdata <= reg_data_out;     // register read data
+
+	    // clear errors whenever a register (ANY REGISTER) is read
+	    data_lost_error_r <= 0;
+	    busy_error_r <= 0;
+	 end else begin
+	    // latches
+	    if (data_lost_i) data_lost_error_r <= 1'd1;
+	    if (busy_error) busy_error_r <= 1'd1;
+	 end
       end
-   end    
-
-   // Add user logic here
-
-   // User logic ends
+   end
 
 endmodule
 `endif //  `ifndef _GRAD_BRAM_
