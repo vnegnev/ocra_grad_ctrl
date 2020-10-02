@@ -319,44 +319,33 @@ module ocra_grad_ctrl_tb;
       #16240 check_ocra1(3000, 3001, 3002, 3003); #12300;
       check_ocra1(3000, 3001, 3004, 3003); #12300;
       check_ocra1(3000, 3001, 3005, 3003); #7820;
-      for (n = 3006; n < 3014; n = n + 1) begin
+      for (n = 3006; n < 3015; n = n + 1) begin
 	 check_ocra1(3000, 3001, n, 3003); #5000;
       end
+      check_ocra1(3000, 3001, 3015, 3003); #12200;
 
+      // 4-channel updates
+      for (n = 4000; n < 4020; n = n + 4) begin
+	 check_ocra1(n, n+1, n+2, n+3); #5000;
+      end
+
+      // single-channel updates
+      for (n = 4020; n < 4026; n = n + 1) begin
+	 check_ocra1(n, 4017, 4018, 4019); #5000;
+      end
+
+      // update pairs at a time
+      for (n = 4026; n < 4034; n = n + 2) begin
+	 check_ocra1(n, 4017, 4018, n + 1); #5000;
+      end
       
+      // update out-of-order
+      for (n = 4034; n < 4086; n = n + 4) begin
+	 check_ocra1(n + 2, n + 3, n, n + 1); #5000;
+      end
 	 
-      // #36405 for (n = 0; n < 9; n = n + 1) begin
-      // 	 check_ocra1(n, 0, 0, 0); #3070;
-      // end
-      // check_ocra1(9); #1690; // speed up in the middle of pause
-      // for (n = 10; n < 15; n = n + 1) begin
-      // 	 check_ocra1(n); #40;
-      // end
-      // check_ocra1(15); #3070; // slow down in the middle of pause
-      // for (n = 16; n < 18; n = n + 1) begin
-      // 	 check_ocra1(n); #3070;
-      // end
-      // check_ocra1(18); #840;      
-
-      // // test address reset and offset
-      // for (n = 10; n < 13; n = n + 1) begin
-      // 	 check_ocra1(n); #3070;
-      // end
-
-      // // test busy causing a <1-cycle delay
-      // check_ocra1(13); #3750 check_ocra1(14); #2390; // 3070 +/- 680      
-      // check_ocra1(15); #3070 check_ocra1(16); #3070;
-      // check_ocra1(17); #11530 check_ocra1(20); #750;
-      // for (n = 21; n < 25; n = n + 1) begin
-      // 	 check_ocra1(n); #3070;
-      // end
-      // check_ocra1(25); #2600; // uneven delay just from timing of the reconfiguration
-
-      // // test larger intervals
-      // for (n = 0; n < 16; n = n + 1) begin
-      // 	 check_ocra1({2'd0, n[2:0], 3'd0, 24'd8000 + n[23:0]});
-      // 	 for (p = 0; p <= n[2:0]; p = p + 1) #3070;
-      // end
+      // TODO: gpa-fhdo tests
+      
    end // initial begin   
 
    // Tasks for AXI bus reads and writes, later interrupt control (if we choose to use it)

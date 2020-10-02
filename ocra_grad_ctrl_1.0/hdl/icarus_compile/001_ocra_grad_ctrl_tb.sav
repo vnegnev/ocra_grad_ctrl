@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Thu Oct  1 16:12:05 2020
+[*] Fri Oct  2 10:37:48 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra_grad_ctrl_tb.lxt"
-[dumpfile_mtime] "Thu Oct  1 16:11:08 2020"
-[dumpfile_size] 348818
+[dumpfile_mtime] "Fri Oct  2 10:37:43 2020"
+[dumpfile_size] 348761
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra_grad_ctrl_tb.sav"
-[timestart] 233760
+[timestart] 0
 [size] 1920 1025
-[pos] -1 -1
-*-13.898834 283170 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 2559 359
+*-16.142757 377000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra_grad_ctrl_tb.
 [treeopen] ocra_grad_ctrl_tb.UUT.
 [sst_width] 280
