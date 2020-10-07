@@ -67,23 +67,28 @@ module ocra1_iface_tb;
       #100 send(24'h200002, 24'h200002, 24'h200002, 24'h200002); // initialise all DACs
       #10000 sendV(1,2,3,4);
       #10000 sendV(5,6,7,8);
-      #10000 sendV(-1,-2,-3,-4);      
+      #10000 sendV(-1,-2,-3,-4);
+
+      #10000 spi_clk_div_i = 1;
+      #100 sendV(1,2,3,4); // extra 5 ticks built in
+      #450 sendV(5,6,7,8);
+      #450 sendV(-1,-2,-3,-4);
 
       #10000 $finish;
    end // initial begin
 
    // check voltages
    initial begin
-      #16556 checkV(0,0,0,0);
-      #8 checkV(1,2,3,4);
+      #18145 checkV(0,0,0,0);
+      #10 checkV(1,2,3,4);
    end
    initial begin
-      #26604 checkV(1,2,3,4);
-      #8 checkV(5,6,7,8);
+      #28195 checkV(1,2,3,4);
+      #10 checkV(5,6,7,8);
    end
    initial begin
-      #36660 checkV(5,6,7,8);
-      #8 checkV(-1,-2,-3,-4);
+      #38245 checkV(5,6,7,8);
+      #10 checkV(-1,-2,-3,-4);
    end   
 
    task send; // send data to OCRA1 interface core
@@ -116,7 +121,7 @@ module ocra1_iface_tb;
       end
    endtask // checkV   
 
-   always #4 clk = !clk; // 125 MHz clock
+   always #5 clk = !clk; // 100 MHz clock
 
    ocra1_iface UUT(
 		   // Outputs

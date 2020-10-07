@@ -177,7 +177,7 @@ module ocra_grad_ctrl #
 			 .data_i       	(data),
 			 .valid_i      	(data_valid),
 			 .spi_clk_div_i	(spi_clk_div));
-   
+   /*
    gpa_fhdo_iface gpa_fhdo_if (
 			       // Outputs
 			       .fhd_clk_o	(fhd_clk_o),
@@ -190,6 +190,11 @@ module ocra_grad_ctrl #
 			       .spi_clk_div_i	(spi_clk_div),
 			       .valid_i		(data_valid),
 			       .fhd_sdi_i	(fhd_sdi_i));
+    */
+   assign fhd_clk_o = 0;
+   assign fhd_sdo_o = 0;
+   assign fhd_ssn_o = 1;
+   assign fhd_busy = 0;
 
    // Instantiation of Axi Bus Interface S_AXI_INTR
    ocra_grad_ctrl_S_AXI_INTR # ( 
