@@ -65,6 +65,7 @@ module grad_bram_tb;
    wire			S_AXI_RVALID;		// From UUT of grad_bram.v
    wire			S_AXI_WREADY;		// From UUT of grad_bram.v
    wire [31:0]		data_o;			// From UUT of grad_bram.v
+   wire [5:0]		spi_clk_div_o;		// From UUT of grad_bram.v
    wire			valid_o;		// From UUT of grad_bram.v
    // End of automatics
 
@@ -98,14 +99,14 @@ module grad_bram_tb;
 
       #107 S_AXI_ARESETN = 1; // extra 7ns to ensure that TB stimuli occur a bit before the positive clock edges
       S_AXI_BREADY = 1; // TODO: make this more fine-grained if bus reads/writes don't work properly in hardware
-      #10 wr32(16'd4, 32'hdeadbeef); // reg 1
+      #10 wr32(16'd4, {26'd0, 6'd30}); // reg 1: LSBs set SPI clock divisor
       wr32(16'd8, 32'hcafebabe); // reg 2
       wr32(16'd12, 32'habcd0123); // reg 3
       wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
 
       // register readback tests
       #10 rd32(16'd0, {22'd0, 10'd303});
-      rd32(16'd4, 32'hdeadbeef);
+      rd32(16'd4, {26'd0, 6'd30});
       rd32(16'd8, 32'hcafebabe);
       rd32(16'd12, 32'habcd0123);
       rd32(16'd16, 32'd0);
@@ -264,6 +265,7 @@ module grad_bram_tb;
 		 // Outputs
 		 .data_o		(data_o[31:0]),
 		 .valid_o		(valid_o),
+		 .spi_clk_div_o		(spi_clk_div_o[5:0]),
 		 .S_AXI_AWREADY		(S_AXI_AWREADY),
 		 .S_AXI_WREADY		(S_AXI_WREADY),
 		 .S_AXI_BRESP		(S_AXI_BRESP[1:0]),

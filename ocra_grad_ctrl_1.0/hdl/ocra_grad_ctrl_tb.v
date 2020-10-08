@@ -22,13 +22,15 @@
  `define _OCRA_GRAD_CTRL_TB_
 
  `include "ocra_grad_ctrl.v"
+ `include "ocra1_model.v"
+ // `include "gpa_fhdo_model.v"
 
  `timescale 1ns / 1ns
 
 module ocra_grad_ctrl_tb;
    // Parameters copied from ocra_grad_ctrl for now (duplication of information, I know)
    localparam integer 			      C_S00_AXI_DATA_WIDTH = 32;
-   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 14;
+   localparam integer 			      C_S00_AXI_ADDR_WIDTH = 16;
 
    // Localparams of Axi Slave Bus Interface S_AXI_INTR
    localparam integer 			      C_S_AXI_INTR_DATA_WIDTH = 32;
@@ -43,12 +45,14 @@ module ocra_grad_ctrl_tb;
    wire s00_axi_aclk = clk, s_axi_intr_aclk = clk;
    wire s00_axi_aresetn = rst_n;
    reg 	err; // error flag in testbench
+
+   wire [17:0] oc1_voutx, oc1_vouty, oc1_voutz, oc1_voutz2;
    
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
    reg			fhd_sdi_i;		// To UUT of ocra_grad_ctrl.v
+   reg			grad_bram_enb_i;	// To UUT of ocra_grad_ctrl.v
    reg [13:0]		grad_bram_offset_i;	// To UUT of ocra_grad_ctrl.v
-   reg			grad_bram_rst_i;	// To UUT of ocra_grad_ctrl.v
    reg [C_S00_AXI_ADDR_WIDTH-1:0] s00_axi_araddr;// To UUT of ocra_grad_ctrl.v
    reg [2:0]		s00_axi_arprot;		// To UUT of ocra_grad_ctrl.v
    reg			s00_axi_arvalid;	// To UUT of ocra_grad_ctrl.v
@@ -105,6 +109,14 @@ module ocra_grad_ctrl_tb;
    wire			s_axi_intr_wready;	// From UUT of ocra_grad_ctrl.v
    // End of automatics
 
+   // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)
+   always #5 clk = !clk;   
+
+   reg [23:0] 		k;
+   reg [2:0] 		extra_wait;
+   reg [1:0] 		channel;
+   reg 			broadcast;
+   // Stimuli and read/write checks
    initial begin
       $dumpfile("icarus_compile/000_ocra_grad_ctrl_tb.lxt");
       $dumpvars(0, ocra_grad_ctrl_tb);
@@ -113,7 +125,7 @@ module ocra_grad_ctrl_tb;
       clk = 1;
       rst_n = 0;
       grad_bram_offset_i = 0;
-      grad_bram_rst_i = 1;
+      grad_bram_enb_i = 0;
       fhd_sdi_i = 0;
 
       // Initialise bus-related I/O
@@ -143,16 +155,202 @@ module ocra_grad_ctrl_tb;
       s_axi_intr_arvalid = 0;
       s_axi_intr_rready = 0;
 
-      #100 rst_n = 1;
-      #100 wr32(0, 32'hdeadbeef);
+      #107 rst_n = 1; // extra 7ns to ensure that TB stimuli occur a bit before the positive clock edges
+      s00_axi_bready = 1; // TODO: make this more fine-grained if bus reads/writes don't work properly in hardware
 
-      #1000 $finish;
-   end
+      // Carry out similar tests to those in grad_bram_tb
+      #10 wr32(16'd4, {26'd0, 6'd30}); // reg 1: LSBs set SPI clock divisor
+      wr32(16'd8, 32'hcafebabe); // reg 2
+      wr32(16'd12, 32'habcd0123); // reg 3
+      wr32(16'd16, 32'h12345678); // reg 4 -- this write shouldn't do anything, since reg4 is read-only
+
+      // register readback tests
+      #10 rd32(16'd0, {22'd0, 10'd303});
+      rd32(16'd4, {26'd0, 6'd30});
+      rd32(16'd8, 32'hcafebabe);
+      rd32(16'd12, 32'habcd0123);
+      rd32(16'd16, 32'd0);
+      
+      // BRAM writes, DAC init
+      wr32(16'h8000, {8'd0, 1'd0, 24'h200002});
+      wr32(16'h8004, {8'd1, 1'd0, 24'h200002});
+      wr32(16'h8008, {8'd2, 1'd0, 24'h200002});
+      wr32(16'h800c, {8'd3, 1'd1, 24'h200002});
+
+      // BRAM writes on all 4 channels, no extra waits, sustained
+      // update interval of 4 * 3070 ns = 12280 ns (clock of 10ns
+      // period; for 8ns period this ends up being 9824ns, i.e. 101.7
+      // ksps
+      for (k = 4; k < 100; k = k + 1) begin
+	 channel = k[1:0];
+	 broadcast = !( (k + 1) % 4); // broacast on k=7, k=11, etc
+	 wr32_oc1(k, 0, channel, broadcast, k);
+      end
+      
+      // always write first 4 words of new block with regular
+      // commands, to avoid inadvertently carrying over values from
+      // the previous block (since grad_bram_enb_i gets pulled low
+      // after data has been transferred to the iface, but before it's
+      // been serialised to the DACs)
+      wr32_oc1(1000, 0, 0, 0, 1000);
+      wr32_oc1(1001, 0, 1, 0, 1001);
+      wr32_oc1(1002, 0, 2, 0, 1002);      
+      wr32_oc1(1003, 1, 3, 1, 1003); // wait 1 extra unit before next data is sent
+
+      // BRAM writes on only X and Z, each has an extra wait of 1 -
+      // leading to a sustained update interval as above, but only for
+      // 2 channels      
+      for (k = 1004; k < 1100; k = k + 1) begin
+	 channel = k[0] ? 2 : 0;
+	 broadcast = channel == 2; // broadcast on Z updates
+	 wr32_oc1(k, 1, channel, broadcast, k);
+      end
+
+      // BRAM writes on only Y and Z2, Y has no extra wait and Z2 has
+      // an extra wait of 2 - leading to a sustained update interval
+      // as above, but only for 2 channels (alternative timing)
+      wr32_oc1(2000, 0, 0, 0, 2000);
+      wr32_oc1(2001, 0, 1, 0, 2001);
+      wr32_oc1(2002, 0, 2, 0, 2002);      
+      wr32_oc1(2003, 2, 3, 1, 2003); // since this is a broadcast, wait 2
+      for (k = 2004; k < 2100; k = k + 1) begin
+	 channel = k[0] ? 3 : 1;
+	 broadcast = channel == 3; // broadcast on Z2 updates
+	 extra_wait = (channel == 3) ? 2 : 0;
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
+      end
+
+      // BRAM writes on only Z, with extra waits of 3 each time
+      wr32_oc1(3000, 0, 0, 0, 3000);
+      wr32_oc1(3001, 0, 1, 0, 3001);
+      wr32_oc1(3002, 0, 2, 0, 3002);      
+      wr32_oc1(3003, 3, 3, 1, 3003); // since this is a broadcast, wait 2
+      for (k = 3004; k < 3100; k = k + 1) begin
+	 channel = 2; // always Z
+	 broadcast = 1; // always broadcast
+	 extra_wait = 3; // always wait
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
+      end
+
+      // BRAM writes on only Z, with extra waits of 3 each time
+      wr32_oc1(4000, 0, 0, 0, 4000);
+      wr32_oc1(4001, 0, 1, 0, 4001);
+      wr32_oc1(4002, 0, 2, 0, 4002);      
+      wr32_oc1(4003, 0, 3, 1, 4003); // no extra wait, compared to previous inits
+      for (k = 4004; k < 4100; k = k + 1) begin
+	 // switch between a few different update modes in one block
+	 if (k < 4020) begin
+	    channel = k[1:0];
+	    broadcast = channel == 3;
+	    extra_wait = k == 4019 ? 3 : 0; // need an extra wait for the single-channel section
+	 end else if (k < 4026) begin
+	    channel = 0; // always x
+	    broadcast = 1; // always broadcast
+	    extra_wait = k == 4025 ? 1 : 3; // extra waits
+	 end else if (k < 4034) begin
+	    channel = k[0] ? 3 : 0; // x and z2
+	    broadcast = k[0]; // broadcast on z2
+	    extra_wait = k == 4033 ? 0 : 1;
+	 end else begin
+	    // back to 4-channel, but broadcast on a different channel
+	    // (so that output results appear in a different order)
+	    channel = k[1:0];
+	    broadcast = channel == 1;
+	    extra_wait = 0;
+	 end
+	 wr32_oc1(k, extra_wait, channel, broadcast, k);
+      end      
+
+      // Start outputting data; address 0
+      #100 grad_bram_enb_i = 1;
+
+      // change output address: 2 channels updated in parallel
+      #60000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 1000;
+      #10 grad_bram_enb_i = 1; // long enough pause to avoid it being busy
+
+      // change output address: 2 channels updated in parallel, alternate timing
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 2000;
+      #10 grad_bram_enb_i = 1;
+
+      // change output address, 1 channel updated
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 3000;
+      #10 grad_bram_enb_i = 1;
+      
+      // Change output rate to be faster (5us intervals, sped-up SPI clock)
+      #50000 wr32(16'd4, {26'd0, 6'd19});
+      wr32(16'd0, {22'd0, 10'd121});
+
+      // Change output address, 4 channels updated again
+      #50000 grad_bram_enb_i = 0;
+      grad_bram_offset_i = 4000;
+      #10 grad_bram_enb_i = 1;
+
+      // Reset core, make sure it resumes correctly
+      #50000 rst_n = 0;
+      #10 rst_n = 1;
+
+      #100000 if (err) begin
+	 $display("THERE WERE ERRORS");
+	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level
+      end
+      $finish;
+   end // initial begin
+
+   // DAC output checks at specific times
+   integer n, p;
+   initial begin
+      #44615 check_ocra1(0,0,0,0);
+      #10 for (n = 4; n < 20; n = n + 4) begin
+	 check_ocra1(n, n+1, n+2, n+3); #12300;
+      end
+      check_ocra1(1000, 1001, 1002, 1003); #12300;
+      check_ocra1(1004, 1001, 1005, 1003); #12300;
+      check_ocra1(1006, 1001, 1007, 1003); #12300;
+      check_ocra1(1008, 1001, 1009, 1003);
+
+      #16240 check_ocra1(2000, 2001, 2002, 2003); #12300;
+      check_ocra1(2000, 2004, 2002, 2005); #12300;
+      check_ocra1(2000, 2006, 2002, 2007); #12300;
+      check_ocra1(2000, 2008, 2002, 2009);
+
+      #16240 check_ocra1(3000, 3001, 3002, 3003); #12300;
+      check_ocra1(3000, 3001, 3004, 3003); #12300;
+      check_ocra1(3000, 3001, 3005, 3003); #7820;
+      for (n = 3006; n < 3015; n = n + 1) begin
+	 check_ocra1(3000, 3001, n, 3003); #5000;
+      end
+      check_ocra1(3000, 3001, 3015, 3003); #12200;
+
+      // 4-channel updates
+      for (n = 4000; n < 4020; n = n + 4) begin
+	 check_ocra1(n, n+1, n+2, n+3); #5000;
+      end
+
+      // single-channel updates
+      for (n = 4020; n < 4026; n = n + 1) begin
+	 check_ocra1(n, 4017, 4018, 4019); #5000;
+      end
+
+      // update pairs at a time
+      for (n = 4026; n < 4034; n = n + 2) begin
+	 check_ocra1(n, 4017, 4018, n + 1); #5000;
+      end
+      
+      // update out-of-order
+      for (n = 4034; n < 4086; n = n + 4) begin
+	 check_ocra1(n + 2, n + 3, n, n + 1); #5000;
+      end
+	 
+      // TODO: gpa-fhdo tests
+      
+   end // initial begin   
 
    // Tasks for AXI bus reads and writes, later interrupt control (if we choose to use it)
    task wr32; //write to bus
-      input [31:0] addr;
-      input [31:0] data;
+      input [31:0] addr, data;
       begin
          #10 s00_axi_wdata = data;
 	 s00_axi_wstrb = 'hf;
@@ -165,13 +363,26 @@ module ocra_grad_ctrl_tb;
                disable axi_write_timeout;
             end
             begin: axi_write_timeout
-               // #10000 disable wait_axi_write;
+               #10000 disable wait_axi_write;
+	       $display("%d ns: AXI write timed out", $time);
             end
          join
          #13 s00_axi_awvalid = 0;
          s00_axi_wvalid = 0;
       end
    endtask // wr32
+
+   task wr32_oc1; // convenience task for encoding ocra1 DAC words
+      input [13:0] bram_offset;
+      input [2:0]  extra_wait;
+      input [1:0] channel;
+      input 	  broadcast;
+      input [17:0] dac_v;
+      begin
+	 // 2b spare, 3b extra wait, 2b channel, 1b broadcast, 24b DAC word (see ad5781 datasheet)
+	 wr32(16'h8000 + (bram_offset << 2), {2'd0, extra_wait, channel, broadcast, 4'd1, dac_v, 2'd0});
+      end
+   endtask // wr32_oc1   
 
    task rd32; //read from bus
       input [31:0] addr;
@@ -193,8 +404,31 @@ module ocra_grad_ctrl_tb;
       end
    endtask // rd32
 
-   // Clock generation: assuming 100 MHz for convenience (in real design it'll be 122.88, 125 or 144 MHz depending on what's chosen)
-   always #5 clk = !clk;
+   task check_ocra1;
+      input [17:0] exp_x, exp_y, exp_z, exp_z2;
+      begin
+	 if (exp_x != oc1_voutx) begin
+            $display("%d ns: ocra1 X expected %x, read %x.",
+		     $time, exp_x, oc1_voutx);
+            err <= 1'd1;
+	 end
+	 if (exp_y != oc1_vouty) begin
+            $display("%d ns: ocra1 Y expected %x, read %x.",
+		     $time, exp_y, oc1_vouty);
+            err <= 1'd1;
+	 end
+	 if (exp_z != oc1_voutz) begin
+            $display("%d ns: ocra1 Z expected %x, read %x.",
+		     $time, exp_z, oc1_voutz);
+            err <= 1'd1;
+	 end
+	 if (exp_z2 != oc1_voutz2) begin
+            $display("%d ns: ocra1 Z2 expected %x, read %x.",
+		     $time, exp_z2, oc1_voutz2);
+            err <= 1'd1;
+	 end
+      end
+   endtask // check_ocra1   
    
    ocra_grad_ctrl UUT(
 		      /*AUTOINST*/
@@ -228,7 +462,7 @@ module ocra_grad_ctrl_tb;
 		      .irq		(irq),
 		      // Inputs
 		      .grad_bram_offset_i(grad_bram_offset_i[13:0]),
-		      .grad_bram_rst_i	(grad_bram_rst_i),
+		      .grad_bram_enb_i	(grad_bram_enb_i),
 		      .fhd_sdi_i	(fhd_sdi_i),
 		      .s00_axi_aclk	(s00_axi_aclk),
 		      .s00_axi_aresetn	(s00_axi_aresetn),
@@ -256,6 +490,20 @@ module ocra_grad_ctrl_tb;
 		      .s_axi_intr_arprot(s_axi_intr_arprot[2:0]),
 		      .s_axi_intr_arvalid(s_axi_intr_arvalid),
 		      .s_axi_intr_rready(s_axi_intr_rready));
+
+   ocra1_model oc1_model(// Outputs
+			 .voutx			(oc1_voutx),
+			 .vouty			(oc1_vouty),
+			 .voutz			(oc1_voutz),
+			 .voutz2		(oc1_voutz2),
+			 // Inputs
+			 .clk			(oc1_clk_o),
+			 .syncn			(oc1_syncn_o),
+			 .ldacn			(oc1_ldacn_o),
+			 .sdox			(oc1_sdox_o),
+			 .sdoy			(oc1_sdoy_o),
+			 .sdoz			(oc1_sdoz_o),
+			 .sdoz2			(oc1_sdoz2_o));
    
 endmodule // ocra_grad_ctrl_tb
 `endif //  `ifndef _OCRA_GRAD_CTRL_TB_
