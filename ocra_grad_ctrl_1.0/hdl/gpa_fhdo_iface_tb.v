@@ -59,7 +59,7 @@ module gpa_fhdo_iface_tb;
 
       #100 send(1,2,3,4);
       #20000 send(5,6,7,8);
-
+ 
       #20000 $finish;
    end // initial begin
 
@@ -69,10 +69,10 @@ module gpa_fhdo_iface_tb;
 	 // TODO: perform a check to see whether the busy line is set before trying to send data
 	 #10 data_i = {5'd0, 2'd0, 1'd0, inx};
 	 valid_i = 1; 
-	 #10 data_i = {5'd0, 2'd1, 1'd0, iny};
-	 #10 data_i = {5'd0, 2'd2, 1'd0, inz}; 	 
-	 #10 data_i = {5'd0, 2'd3, 1'd1, inz2};
-	 #10 valid_i = 0;
+	 #80000 data_i = {5'd0, 2'd1, 1'd0, iny};
+	 #80000 data_i = {5'd0, 2'd2, 1'd0, inz}; 	 
+	 #80000 data_i = {5'd0, 2'd3, 1'd1, inz2};
+	 #80000 valid_i = 0;
       end
    endtask // send
 

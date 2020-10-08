@@ -94,6 +94,7 @@ module gpa_fhdo_iface(
 						2'b00: spi_output[18:16] = 3'b000;
 						2'b01: spi_output[18:16] = 3'b001;
 						2'b10: spi_output[18:16] = 3'b010;
+						2'b11: spi_output[18:16] = 3'b011;
 						default: spi_output[18:16] = 0;
 					endcase
 					spi_output[15:0] = payload_r[15:0];
@@ -122,11 +123,6 @@ module gpa_fhdo_iface(
 		endcase
 	endfunction
 	
-		// Sequence Logic
-   always @(posedge spi_clk) begin
-		state <= next_state;
-   end
-
 	// Sequence Logic
 	always @(posedge clk) begin
 		spi_clk <= div_ctr < spi_clk_edge_div; 
@@ -136,56 +132,59 @@ module gpa_fhdo_iface(
 		else begin
 	      div_ctr <= div_ctr + 1;
 		end
-		if(valid_i) begin
+		if(valid_i && state == IDLE) begin
 			spi_clk_div_r <= spi_clk_div_i;
 			current_transfer <= 0;
 			state <= START_SPI;
 			payload_r <= data_i[23:0];
 			broadcast_r <= data_i[24];
-			channel_r <= data_i[26:25];		
-		end 
+			channel_r <= data_i[26:25];	
+		end
+		else if (div_ctr == 0) begin
+			state <= next_state;
+		end
 	end
 
-
 	// Output Logic
-   always @(posedge spi_clk) begin
-		case(state)
-			IDLE: begin
-				busy_o <= 0;
-				fhd_csn_o <= 1;
-				spi_counter <= 0;
-				fhd_csn_o <= 1;
-				end
-			START_SPI: begin
-				busy_o <= 1;
-				fhd_csn_o <= 1;
-				spi_counter <= 0;
-				fhd_clk_o <= 1;
-			   end
-			OUTPUT_SPI: begin
-				fhd_clk_o <= 1;
-				fhd_csn_o <= 0;
-				if (spi_counter < 24) begin
-					fhd_sdo_o <= spi_output[23-spi_counter];
-					spi_counter <= spi_counter + 1;
-				end
-				else begin
+   always @(posedge clk) begin
+		if(div_ctr == 0) begin
+			case(state)
+				IDLE: begin
+					busy_o <= 0;
+					fhd_csn_o <= 1;
+					spi_counter <= 0;
+					fhd_csn_o <= 1;
+					end
+				START_SPI: begin
+					busy_o <= 1;
+					fhd_csn_o <= 1;
+					spi_counter <= 0;
+					fhd_clk_o <= 1;
+				   end
+				OUTPUT_SPI: begin
+					fhd_clk_o <= 1;
+					fhd_csn_o <= 0;
+					if (spi_counter < 24) begin
+						fhd_sdo_o <= spi_output[23-spi_counter];
+						spi_counter <= spi_counter + 1;
+					end
+					else begin
+						fhd_sdo_o <= 0;
+					end
+				   end
+				END_SPI: begin
 					fhd_sdo_o <= 0;
+					fhd_csn_o <= 1;
 				end
-			   end
-			END_SPI: begin
-				fhd_sdo_o <= 0;
-				fhd_csn_o <= 1;
-			end
-		  endcase
-   end
-
-   always @(negedge spi_clk) begin
-		case(state)
-			START_SPI: 	fhd_clk_o <= 0;
-			OUTPUT_SPI:	fhd_clk_o <= 0;
-			END_SPI:	fhd_clk_o <= 0;
-		  endcase
+			  endcase
+		  end
+		else if(div_ctr == spi_clk_edge_div) begin
+			case(state)
+				START_SPI: 	fhd_clk_o <= 0;
+				OUTPUT_SPI:	fhd_clk_o <= 0;
+				END_SPI:	fhd_clk_o <= 0;
+			endcase
+		end
    end
 
 
