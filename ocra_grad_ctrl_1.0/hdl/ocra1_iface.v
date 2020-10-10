@@ -31,7 +31,9 @@ module ocra1_iface(
 		   input 	rst_n, // not used for anything other than data_present flag for now
 
 		   // data words from gradient memory core
-		   input [31:0] data_i, // bits 26:25: target channel, bit 24: broadcast/transmit, 
+		   /* verilator lint_off UNUSED */
+		   input [31:0] data_i, // bits 26:25: target channel, bit 24: broadcast/transmit,
+		   /*lint_on*/
 
 		   // data valid flag, should be held high for 1 cycle to initiate a transfer		   
 		   input 	valid_i,
@@ -54,8 +56,7 @@ module ocra1_iface(
 
    // 122.88 -> 3.84 MHz clock freq - ~150 ksps update rate possible
    // spi_clk_edge_div used for toggling the SPI clock
-   reg [5:0] 			spi_clk_div_r = 0;
-   wire [4:0] 			spi_clk_edge_div = spi_clk_div_r[5:1]; // divided by 2
+   reg [4:0] 			spi_clk_edge_div = 0; // spi_clk_div_r divided by 2
 
    localparam IDLE = 25, START = 24, END = 0;
    
@@ -76,7 +77,7 @@ module ocra1_iface(
       oc1_ldacn_o <= 1;
       busy_o <= 1;
 
-      spi_clk_div_r <= spi_clk_div_i;
+      spi_clk_edge_div <= spi_clk_div_i[5:1];
       broadcast_r2 <= broadcast_r;
 
       // handle input instructions
@@ -129,7 +130,7 @@ module ocra1_iface(
 	   state <= IDLE;
 	end
 	default: begin // covers the START state and all the states down to 0	   
-	   oc1_clk_o <= div_ctr <= spi_clk_edge_div;
+	   oc1_clk_o <= div_ctr <= {1'b0, spi_clk_edge_div};
 	   // divisor logic	  
 	   if (div_ctr == spi_clk_div_i) begin
 	      div_ctr <= 0;

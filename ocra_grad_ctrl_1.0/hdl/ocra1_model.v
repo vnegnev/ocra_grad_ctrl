@@ -38,10 +38,11 @@ module ocra1_model(
 		   );
 
    reg 				 clrn = 1, resetn = 1;
+   wire 			 sdix, sdiy, sdiz, sdiz2; // inputs from DACs (not connected)
    
    ad5781_model DACX(
 		     // Outputs
-		     .sdo		(),
+		     .sdo		(sdix),
 		     .vout		(voutx),
 		     // Inputs
 		     .sdin		(sdox),
@@ -53,7 +54,7 @@ module ocra1_model(
 
    ad5781_model DACY(
 		     // Outputs
-		     .sdo		(),
+		     .sdo		(sdiy),
 		     .vout		(vouty),
 		     // Inputs
 		     .sdin		(sdoy),
@@ -65,7 +66,7 @@ module ocra1_model(
 
    ad5781_model DACZ(
 		     // Outputs
-		     .sdo		(),
+		     .sdo		(sdiz),
 		     .vout		(voutz),
 		     // Inputs
 		     .sdin		(sdoz),
@@ -78,7 +79,7 @@ module ocra1_model(
 
    ad5781_model DACZ2(
 		     // Outputs
-		     .sdo		(),
+		     .sdo		(sdiz2),
 		     .vout		(voutz2),
 		     // Inputs
 		     .sdin		(sdoz2),

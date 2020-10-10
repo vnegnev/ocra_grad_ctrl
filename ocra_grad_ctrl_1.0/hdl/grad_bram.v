@@ -266,10 +266,11 @@ module grad_bram #
 	 end else begin // lower range: write to config register
 	    case (axi_addr[2:0]) // TODO: look at more than lower 3 bits if this is ever expanded
 	      // no resets
-	      2'd0: slv_reg0 <= S_AXI_WDATA;
-	      2'd1: slv_reg1 <= S_AXI_WDATA;
-	      2'd2: slv_reg2 <= S_AXI_WDATA;
-	      2'd3: slv_reg3 <= S_AXI_WDATA;
+	      3'd0: slv_reg0 <= S_AXI_WDATA;
+	      3'd1: slv_reg1 <= S_AXI_WDATA;
+	      3'd2: slv_reg2 <= S_AXI_WDATA;
+	      3'd3: slv_reg3 <= S_AXI_WDATA;
+	      default;
 	    endcase // case (axi_addr[1:0])
 	 end
       end // if (slv_reg_wen)
@@ -307,7 +308,7 @@ module grad_bram #
       // pipelining
       {grad_bram_rd_r2, grad_bram_rd_r1} <= {grad_bram_rd_r1, grad_bram_rd};
       grad_bram_raddr_r <= grad_bram_raddr;
-      grad_bram_raddr_r2 <= grad_bram_raddr_r; // extended to 16b; still a 32b address rather than a byte address
+      grad_bram_raddr_r2 <= {3'd0, grad_bram_raddr_r}; // extended to 16b; still a 32b address rather than a byte address
       // pipelining, to avoid busy-vs-done logic issues
       {data_interval_done_r2, data_interval_done_r} <= {data_interval_done_r, data_interval_done};
       data_interval_done_p <= !data_interval_done_r2 && data_interval_done_r; // capture posedges, to ensure it's high for only 1 cycle
@@ -483,7 +484,7 @@ module grad_bram #
    always @( posedge S_AXI_ACLK ) begin
       if ( S_AXI_ARESETN == 1'b0 ) begin
 	 axi_arready <= 1'b0;
-	 axi_araddr  <= 32'b0;
+	 axi_araddr  <= 16'd0;
       end else begin    
 	 if (~axi_arready && S_AXI_ARVALID) begin
 	    // indicates that the slave has acceped the valid read address
@@ -528,16 +529,17 @@ module grad_bram #
    assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
    always @(*) begin
       // Address decoding for reading registers
-      case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
-	3'h0   : reg_data_out <= slv_reg0;
-	3'h1   : reg_data_out <= slv_reg1;
-	3'h2   : reg_data_out <= slv_reg2;
-	3'h3   : reg_data_out <= slv_reg3;
-	3'h4   : reg_data_out <= slv_reg4;
-	3'h5   : reg_data_out <= slv_reg5;
-	3'h6   : reg_data_out <= slv_reg6;
-	3'h7   : reg_data_out <= slv_reg7;
-	default : reg_data_out <= 0;
+      // case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
+      case ( axi_araddr[ADDR_LSB+3:ADDR_LSB] )
+	3'h0   : reg_data_out = slv_reg0;
+	3'h1   : reg_data_out = slv_reg1;
+	3'h2   : reg_data_out = slv_reg2;
+	3'h3   : reg_data_out = slv_reg3;
+	3'h4   : reg_data_out = slv_reg4;
+	3'h5   : reg_data_out = slv_reg5;
+	3'h6   : reg_data_out = slv_reg6;
+	3'h7   : reg_data_out = slv_reg7;
+	default : reg_data_out = 0;
       endcase
    end
 

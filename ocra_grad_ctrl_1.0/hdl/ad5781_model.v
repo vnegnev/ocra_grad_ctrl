@@ -32,8 +32,8 @@ module ad5781_model(
 		    input 	      clrn,
 		    input 	      resetn,
 		    
-		    output reg 	      sdo,
-		    output reg [17:0] vout // 
+		    output reg 	      sdo = 0,
+		    output reg [17:0] vout = 0
 		    );
 
    reg [23:0] 			  dac_reg = 0, ctrl_reg = 0, clearcode_reg = 0, soft_ctrl_reg = 0;
@@ -64,6 +64,7 @@ module ad5781_model(
 		 3'b010: ctrl_reg <= spi_input;
 		 3'b011: clearcode_reg <= spi_input;
 		 3'b100: soft_ctrl_reg <= spi_input;
+		 default;
 	       endcase // case (spi_addr)
 	    end	    
 	 end else begin

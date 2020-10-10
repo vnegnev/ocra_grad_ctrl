@@ -69,7 +69,7 @@ module gpa_fhdo_iface(
 		1		transfer payload
 	*/
 	
-	localparam			SIZE = 5;
+	localparam			SIZE = 3;
 	localparam 			IDLE = 3'b001,START_SPI = 3'b010,OUTPUT_SPI = 3'b011,END_SPI = 3'b100;
 						
 	reg [SIZE-1:0]			state = IDLE;
@@ -78,9 +78,9 @@ module gpa_fhdo_iface(
 	
 	// State Logic
 	function [SIZE-1:0] fsm_function;
-		input [SIZE-1:0] state;
-		input [5:0] spi_counter;
-		case(state)
+		input [SIZE-1:0] statef;
+		input [5:0] spi_counterf;
+		case(statef)
 			START_SPI: begin
 				// load data for current transfer into spi_output
 				spi_output[23:20] = 4'b0000;
@@ -107,8 +107,8 @@ module gpa_fhdo_iface(
 				fsm_function = OUTPUT_SPI;
 			    end
 			OUTPUT_SPI: begin
-				// $display("state_logic spi_counter %d",spi_counter);
-				if (spi_counter == 23) begin
+				// $display("state_logic spi_counterf %d",spi_counterf);
+				if (spi_counterf == 23) begin
 					fsm_function = END_SPI;
 				end
 				else begin

@@ -112,7 +112,7 @@ module ocra1_iface_tb;
    // check data_lost
    initial #51475 if (!data_lost_o) begin
       $display("%d ns: expected data_lost high.", $time);
-      err <= 1;
+      err = 1;
    end
 
    task send; // send data to OCRA1 interface core
@@ -139,19 +139,19 @@ module ocra1_iface_tb;
       begin
 	 if (voutx != vx) begin
 	    $display("%d ns: X expected %x, read %x.", $time, vx, voutx);
-	    err <= 1;
+	    err = 1;
 	 end
 	 if (vouty != vy) begin
 	    $display("%d ns: Y expected %x, read %x.", $time, vy, vouty);	    
-	    err <= 1;
+	    err = 1;
 	 end
 	 if (voutz != vz) begin
 	    $display("%d ns: Z expected %x, read %x.", $time, vz, voutz);	    
-	    err <= 1;
+	    err = 1;
 	 end
 	 if (voutz2 != vz2) begin
 	    $display("%d ns: Z2 expected %x, read %x.", $time, vz2, voutz2);	    
-	    err <= 1;
+	    err = 1;
 	 end
       end
    endtask // checkV   
