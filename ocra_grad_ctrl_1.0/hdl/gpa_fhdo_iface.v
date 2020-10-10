@@ -58,7 +58,6 @@ module gpa_fhdo_iface(
 	reg [5:0] 			spi_clk_div_r = 0;
 	wire [4:0] 			spi_clk_edge_div = spi_clk_div_r[5:1]; // divided by 2
 	reg [5:0] 			div_ctr = 0;
-	reg 				spi_clk = 0;
 	reg [15:0]			old_sync_reg = 16'hFF00; // default values after reset from dac80504 data sheet
 	reg [15:0]			new_sync_reg = 0;
 	
@@ -131,7 +130,6 @@ module gpa_fhdo_iface(
 	
 	// Sequence Logic
 	always @(posedge clk) begin
-		spi_clk <= div_ctr < spi_clk_edge_div; 
 	  	if (div_ctr == spi_clk_div_i) begin
 			div_ctr <= 0;
 		end 
