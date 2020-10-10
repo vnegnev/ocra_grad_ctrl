@@ -69,64 +69,64 @@ module gpa_fhdo_iface(
 		1		transfer payload
 	*/
 	
-	localparam			SIZE = 5;
+	localparam			SIZE = 3;
 	localparam 			IDLE = 3'b001,START_SPI = 3'b010,OUTPUT_SPI = 3'b011,END_SPI = 3'b100;
 						
 	reg [SIZE-1:0]			state = IDLE;
-	wire [SIZE-1:0]			next_state;
-	assign next_state = fsm_function(state,spi_counter);
+	// wire [SIZE-1:0]			next_state;
+	// assign next_state = 
 	
 	// State Logic
-	function [SIZE-1:0] fsm_function;
-		input [SIZE-1:0] state;
-		input [5:0] spi_counter;
-		case(state)
-			START_SPI: begin
-				// load data for current transfer into spi_output
-				spi_output[23:20] = 4'b0000;
-				if(new_sync_reg != old_sync_reg) begin
-					current_transfer = 0;
-					spi_output[19:16] = 4'b0010; // sync_reg
-					spi_output[15:0] = new_sync_reg;
-					old_sync_reg = new_sync_reg;
-					current_transfer = 0;
-				end
-				else begin
-					// select dac_channel
-					spi_output[19] = 1'b1;
-					case (channel_r)
-						2'b00: spi_output[18:16] = 3'b000;
-						2'b01: spi_output[18:16] = 3'b001;
-						2'b10: spi_output[18:16] = 3'b010;
-						2'b11: spi_output[18:16] = 3'b011;
-						default: spi_output[18:16] = 0;
-					endcase
-					spi_output[15:0] = payload_r[15:0];
-					current_transfer = 1;
-				end
-				fsm_function = OUTPUT_SPI;
-			    end
-			OUTPUT_SPI: begin
-				// $display("state_logic spi_counter %d",spi_counter);
-				if (spi_counter == 23) begin
-					fsm_function = END_SPI;
-				end
-				else begin
-					fsm_function = OUTPUT_SPI;
-				end
-			   end
-			END_SPI: begin
-				if (current_transfer < num_transfer) begin
-					current_transfer = current_transfer + 1;
-					fsm_function = START_SPI;
-				end
-				else begin
-					fsm_function = IDLE;
-				end
-			   end
-			default:fsm_function=IDLE;
-		endcase
-	endfunction
+	// function [SIZE-1:0] fsm_function;
+	// 	input [SIZE-1:0] statef;
+	// 	input [5:0] spi_counterf;
+	// 	case(statef)
+	// 		START_SPI: begin
+	// 			// load data for current transfer into spi_output
+	// 			spi_output[23:20] <= 4'b0000;
+	// 			if(new_sync_reg != old_sync_reg) begin
+	// 				current_transfer <= 0;
+	// 				spi_output[19:16] <= 4'b0010; // sync_reg
+	// 				spi_output[15:0] <= new_sync_reg;
+	// 				old_sync_reg <= new_sync_reg;
+	// 				current_transfer <= 0;
+	// 			end
+	// 			else begin
+	// 				// select dac_channel
+	// 				spi_output[19] <= 1'b1;
+	// 				case (channel_r)
+	// 					2'b00: spi_output[18:16] <= 3'b000;
+	// 					2'b01: spi_output[18:16] <= 3'b001;
+	// 					2'b10: spi_output[18:16] <= 3'b010;
+	// 					2'b11: spi_output[18:16] <= 3'b011;
+	// 					default: spi_output[18:16] <= 0;
+	// 				endcase
+	// 				spi_output[15:0] <= payload_r[15:0];
+	// 				current_transfer <= 1;
+	// 			end
+	// 			fsm_function <= OUTPUT_SPI;
+	// 		    end
+	// 		OUTPUT_SPI: begin
+	// 			// $display("state_logic spi_counterf %d",spi_counterf);
+	// 			if (spi_counterf == 23) begin
+	// 				fsm_function <= END_SPI;
+	// 			end
+	// 			else begin
+	// 				fsm_function <= OUTPUT_SPI;
+	// 			end
+	// 		   end
+	// 		END_SPI: begin
+	// 			if (current_transfer < num_transfer) begin
+	// 				current_transfer <= current_transfer + 1;
+	// 				fsm_function <= START_SPI;
+	// 			end
+	// 			else begin
+	// 				fsm_function <= IDLE;
+	// 			end
+	// 		   end
+	// 		default:fsm_function <= IDLE;
+	// 	endcase
+	// endfunction
 	
 	// Sequence Logic
 	always @(posedge clk) begin
@@ -145,7 +145,63 @@ module gpa_fhdo_iface(
 			new_sync_reg <= 16'h0000; // broadcast off, sync (from ldac) off for all channels
 		end
 		else if (div_ctr == 0) begin
-			state <= next_state;
+		   // state <= fsm_function(state,spi_counter);
+
+		   case(state)
+		     START_SPI: begin
+			// load data for current transfer into spi_output
+			spi_output[23:20] <= 4'b0000;
+			if(new_sync_reg != old_sync_reg) begin
+			   current_transfer <= 0;
+			   spi_output[19:16] <= 4'b0010; // sync_reg
+			   spi_output[15:0] <= new_sync_reg;
+// VN: the line below was causing a problem due to blocking assignment
+// -- the if statement above was causing a race condition, since it
+// was being continuously evaluated *and* reassigned. I've moved the
+// whole function into the always block, and made the assignments
+// non-blocking -- this is the style I'd generally recommend for FSMs
+// to avoid hard-to-find race conditions in the future.
+			   old_sync_reg <= new_sync_reg;
+			   current_transfer <= 0;
+			end
+			else begin
+			   // select dac_channel
+			   spi_output[19] <= 1'b1;
+			   // case (channel_r)
+			   //   2'b00: spi_output[18:16] <= 3'b000;
+			   //   2'b01: spi_output[18:16] <= 3'b001;
+			   //   2'b10: spi_output[18:16] <= 3'b010;
+			   //   2'b11: spi_output[18:16] <= 3'b011;
+			   //   default: spi_output[18:16] <= 0;
+			   // endcase
+			   spi_output[18] <= 1'b0;
+			   spi_output[17:16] <= channel_r; // VN: save some logic
+			   spi_output[15:0] <= payload_r[15:0];
+			   current_transfer <= 1;
+			end
+			state <= OUTPUT_SPI;
+		     end
+		     OUTPUT_SPI: begin
+			// $display("state_logic spi_counterf %d",spi_counterf);
+			if (spi_counter == 23) begin
+			   state <= END_SPI;
+			end
+			else begin
+			   state <= OUTPUT_SPI;
+			end
+		     end
+		     END_SPI: begin
+			if (current_transfer < num_transfer) begin
+			   current_transfer <= current_transfer + 1;
+			   state <= START_SPI;
+			end
+			else begin
+			   state <= IDLE;
+			end
+		     end
+		     default:state <= IDLE;
+		   endcase
+		   
 		end
 	end
 
