@@ -59,6 +59,8 @@ module gpa_fhdo_iface(
 	wire [4:0] 			spi_clk_edge_div = spi_clk_div_r[5:1]; // divided by 2
 	reg [5:0] 			div_ctr = 0;
 	reg 				spi_clk = 0;
+	reg [15:0]			old_sync_reg = 16'hFF00; // default values after reset from dac80504 data sheet
+	reg [15:0]			new_sync_reg = 0;
 	
 	localparam			num_transfer = 1;
 	reg [2:0]			current_transfer = 0;
@@ -83,11 +85,14 @@ module gpa_fhdo_iface(
 			START_SPI: begin
 				// load data for current transfer into spi_output
 				spi_output[23:20] = 4'b0000;
-				if (current_transfer == 0) begin
+				if(new_sync_reg != old_sync_reg) begin
+					current_transfer = 0;
 					spi_output[19:16] = 4'b0010; // sync_reg
-					spi_output[15:0] = 16'h0000; // broadcast off, sync (from ldac) off for all channels
+					spi_output[15:0] = new_sync_reg;
+					old_sync_reg = new_sync_reg;
+					current_transfer = 0;
 				end
-				if (current_transfer > 0 && current_transfer < 2) begin
+				else begin
 					// select dac_channel
 					spi_output[19] = 1'b1;
 					case (channel_r)
@@ -98,6 +103,7 @@ module gpa_fhdo_iface(
 						default: spi_output[18:16] = 0;
 					endcase
 					spi_output[15:0] = payload_r[15:0];
+					current_transfer = 1;
 				end
 				fsm_function = OUTPUT_SPI;
 			    end
@@ -134,11 +140,11 @@ module gpa_fhdo_iface(
 		end
 		if(valid_i && state == IDLE) begin
 			spi_clk_div_r <= spi_clk_div_i;
-			current_transfer <= 0;
 			state <= START_SPI;
 			payload_r <= data_i[23:0];
 			broadcast_r <= data_i[24];
 			channel_r <= data_i[26:25];	
+			new_sync_reg <= 16'h0000; // broadcast off, sync (from ldac) off for all channels
 		end
 		else if (div_ctr == 0) begin
 			state <= next_state;
