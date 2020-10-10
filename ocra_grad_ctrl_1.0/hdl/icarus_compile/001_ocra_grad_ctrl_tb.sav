@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Fri Oct  2 10:37:48 2020
+[*] Sat Oct 10 17:23:57 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra_grad_ctrl_tb.lxt"
-[dumpfile_mtime] "Fri Oct  2 10:37:43 2020"
-[dumpfile_size] 348761
+[dumpfile_mtime] "Sat Oct 10 17:22:39 2020"
+[dumpfile_size] 363186
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra_grad_ctrl_tb.sav"
-[timestart] 0
+[timestart] 403050
 [size] 1920 1025
-[pos] 2559 359
-*-16.142757 377000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-11.642355 406070 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra_grad_ctrl_tb.
 [treeopen] ocra_grad_ctrl_tb.UUT.
 [sst_width] 280
-[signals_width] 242
+[signals_width] 293
 [sst_expanded] 1
 [sst_vpaned_height] 290
 @28
@@ -48,14 +48,56 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg3[31:0]
 @200
 -
 -grad_bram
-@22
+@28
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_int_and_wait_done[0]
+@24
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.grad_bram_raddr[12:0]
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.grad_bram_raddr_r[12:0]
+@c00022
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
 @28
-ocra_grad_ctrl_tb.UUT.grad_bram_inst.valid_o[0]
+(0)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(1)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(2)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(3)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(4)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(5)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(6)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(7)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(8)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(9)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(10)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(11)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(12)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(13)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(14)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(15)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(16)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(17)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(18)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(19)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(20)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(21)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(22)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(23)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(24)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(25)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(26)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(27)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(28)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(29)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(30)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+(31)ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_o[31:0]
+@1401200
+-group_end
+@22
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.valid_o[3:0]
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_interval_max[9:0]
 @200
 -
 -ocra1
 @28
+ocra_grad_ctrl_tb.UUT.oc1_data_lost[0]
 ocra_grad_ctrl_tb.oc1_clk_o[0]
 ocra_grad_ctrl_tb.oc1_syncn_o[0]
 ocra_grad_ctrl_tb.oc1_ldacn_o[0]
@@ -68,6 +110,8 @@ ocra_grad_ctrl_tb.oc1_sdoz_o[0]
 @24
 ocra_grad_ctrl_tb.UUT.ocra1_if.spi_clk_div_i[5:0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.state[5:0]
+@22
+ocra_grad_ctrl_tb.UUT.ocra1_if.data_i[31:0]
 @28
 ocra_grad_ctrl_tb.UUT.ocra1_if.valid_i[0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.valid_r[0]

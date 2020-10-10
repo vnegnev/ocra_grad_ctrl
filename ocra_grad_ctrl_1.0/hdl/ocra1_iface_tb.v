@@ -34,6 +34,7 @@ module ocra1_iface_tb;
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
    reg			clk;			// To UUT of ocra1_iface.v
    reg [31:0]		data_i;			// To UUT of ocra1_iface.v
+   reg			rst_n;			// To UUT of ocra1_iface.v
    reg [5:0]		spi_clk_div_i;		// To UUT of ocra1_iface.v
    reg			valid_i;		// To UUT of ocra1_iface.v
    // End of automatics
@@ -63,6 +64,7 @@ module ocra1_iface_tb;
 
       // initialisation
       clk = 1;
+      rst_n = 1;
       data_i = 0;
       valid_i = 0;
       spi_clk_div_i = 32;
@@ -80,7 +82,11 @@ module ocra1_iface_tb;
       // create a data-lost error
       #10000 valid_i = 1;
       data_i = {5'd0, 2'd0, 1'd0, 24'd1234}; // this will get lost
+      #40 rst_n = 0;
+      #10 rst_n = 1;
       #10 data_i = {5'd0, 2'd0, 1'd1, 24'd5678}; // this will get sent
+      // #10 rst_n = 1; // this will clear the data-lost error
+      // #10 rst_n = 1;
       #10 valid_i = 0;
 
       #10000 if (err) begin
@@ -167,6 +173,7 @@ module ocra1_iface_tb;
 		   .data_lost_o		(data_lost_o),
 		   // Inputs
 		   .clk			(clk),
+		   .rst_n		(rst_n),
 		   .data_i		(data_i[31:0]),
 		   .valid_i		(valid_i),
 		   .spi_clk_div_i	(spi_clk_div_i[5:0]));

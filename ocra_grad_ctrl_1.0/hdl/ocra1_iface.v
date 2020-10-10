@@ -28,6 +28,7 @@
 
 module ocra1_iface(
 		   input 	clk,
+		   input 	rst_n, // not used for anything other than data_present flag for now
 
 		   // data words from gradient memory core
 		   input [31:0] data_i, // bits 26:25: target channel, bit 24: broadcast/transmit, 
@@ -48,7 +49,7 @@ module ocra1_iface(
 		   output reg 	oc1_sdoz2_o = 0,
 
 		   output reg 	busy_o = 0, // should be held high while module is carrying out an SPI transfer
-		   output reg 	data_lost_o = 0 // 
+		   output reg 	data_lost_o = 0
 		   );
 
    // 122.88 -> 3.84 MHz clock freq - ~150 ksps update rate possible
@@ -105,6 +106,8 @@ module ocra1_iface(
 	   // default: dataz2_r <= payload_r;
 	 endcase // case (channel_r)
       end
+
+      if (!rst_n) data_present <= 4'd0; // assume that there's no valid data present after a reset
       
       // could use a wire, but deliberately adding a clocked register stage to help with timing
       {oc1_sdox_o, oc1_sdoy_o, oc1_sdoz_o, oc1_sdoz2_o} <= {datax_r[23], datay_r[23], dataz_r[23], dataz2_r[23]};
