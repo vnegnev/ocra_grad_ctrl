@@ -180,6 +180,12 @@ module gpa_fhdo_iface(
 					fhd_sdo_o <= 0;
 					fhd_csn_o <= 1;
 				end
+				default: begin // should never happen
+					busy_o <= 0;
+					fhd_csn_o <= 1;
+					spi_counter <= 0;
+					fhd_csn_o <= 1;				
+				end
 			  endcase
 		  end
 		else if(div_ctr == spi_clk_edge_div) begin
@@ -187,6 +193,7 @@ module gpa_fhdo_iface(
 				START_SPI: 	fhd_clk_o <= 0;
 				OUTPUT_SPI:	fhd_clk_o <= 0;
 				END_SPI:	fhd_clk_o <= 0;
+				default: 	fhd_clk_o <= 0; 
 			endcase
 		end
    end
