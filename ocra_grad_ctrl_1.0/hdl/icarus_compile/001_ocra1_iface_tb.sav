@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sun Sep 27 13:48:50 2020
+[*] Sat Oct 10 14:05:41 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra1_iface_tb.lxt"
-[dumpfile_mtime] "Sun Sep 27 13:48:40 2020"
-[dumpfile_size] 28145
+[dumpfile_mtime] "Sat Oct 10 14:04:58 2020"
+[dumpfile_size] 36067
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra1_iface_tb.sav"
-[timestart] 0
+[timestart] 19970
 [size] 1631 846
 [pos] -1 -1
-*-13.123600 36657 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-12.889134 51475 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra1_iface_tb.
 [treeopen] ocra1_iface_tb.OCRA1.
 [sst_width] 230
@@ -19,6 +19,11 @@
 @28
 ocra1_iface_tb.clk[0]
 ocra1_iface_tb.valid_i[0]
+@200
+-
+@28
+ocra1_iface_tb.busy_o[0]
+ocra1_iface_tb.data_lost_o[0]
 @200
 -
 @22
@@ -51,7 +56,7 @@ ocra1_iface_tb.OCRA1.ldacn[0]
 ocra1_iface_tb.OCRA1.DACX.sclk[0]
 @22
 ocra1_iface_tb.OCRA1.DACX.ctrl_reg[23:0]
-@25
+@24
 ocra1_iface_tb.OCRA1.DACX.spi_counter[5:0]
 @22
 ocra1_iface_tb.OCRA1.DACX.spi_input[23:0]
