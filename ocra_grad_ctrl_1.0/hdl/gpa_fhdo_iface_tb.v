@@ -59,6 +59,25 @@ module gpa_fhdo_iface_tb;
 
       #100 send(1,2,3,4);
       #20000 send(5,6,7,8);
+
+      #20000 data_i = {5'd0, 2'd0, 1'd0, 24'ha}; valid_i = 1;
+      #10 valid_i = 0;
+      #8590 data_i = {5'd0, 2'd1, 1'd0, 24'hb}; valid_i = 1;
+      #10 valid_i = 0;
+      #8900 data_i = {5'd0, 2'd2, 1'd0, 24'hc}; valid_i = 1;
+      #10 valid_i = 0;
+      #8900 data_i = {5'd0, 2'd3, 1'd0, 24'hd}; valid_i = 1;
+      #10 valid_i = 0;
+      
+      #10000 spi_clk_div_i = 4;
+      data_i = {5'd0, 2'd0, 1'd0, 24'ha}; valid_i = 1;
+      #10 valid_i = 0;
+      #8590 data_i = {5'd0, 2'd1, 1'd0, 24'hb}; valid_i = 1;
+      #10 valid_i = 0;
+      #8900 data_i = {5'd0, 2'd2, 1'd0, 24'hc}; valid_i = 1;
+      #10 valid_i = 0;
+      #8900 data_i = {5'd0, 2'd3, 1'd0, 24'hd}; valid_i = 1;
+      #10 valid_i = 0;      
  
       #20000 $finish;
    end // initial begin

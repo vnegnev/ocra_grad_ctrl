@@ -303,7 +303,9 @@ module ocra_grad_ctrl_tb;
       #50000 rst_n = 0;
       #10 rst_n = 1;
 
-      // Test data lost error
+      // Test data lost error TODO: continue here -- data lost error
+      // only occurs when grad_bram_enb_i is held low for too short a
+      // time
       #67500 grad_bram_enb_i = 0;
       grad_bram_offset_i = 5000;
       #10 grad_bram_enb_i = 1;
@@ -522,12 +524,12 @@ module ocra_grad_ctrl_tb;
 			 .sdoz2			(oc1_sdoz2_o));
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
-   wire [31:0] bram_a0 = UUT.grad_bram_inst.grad_bram[0],
-	       bram_a1 = UUT.grad_bram_inst.grad_bram[1],
-	       bram_a1024 = UUT.grad_bram_inst.grad_bram[1024],
-	       bram_a5004 = UUT.grad_bram_inst.grad_bram[5004],
-	       bram_a8000 = UUT.grad_bram_inst.grad_bram[8000],
-	       bram_amax = UUT.grad_bram_inst.grad_bram[8191];
+   wire [31:0] bram_a0 = UUT.grad_bram_inst.grad_brams[0],
+	       bram_a1 = UUT.grad_bram_inst.grad_brams[1],
+	       bram_a1024 = UUT.grad_bram_inst.grad_brams[1024],
+	       bram_a5004 = UUT.grad_bram_inst.grad_brams[5004],
+	       bram_a8000 = UUT.grad_bram_inst.grad_brams[8000],
+	       bram_amax = UUT.grad_bram_inst.grad_brams[8191];
    
 endmodule // ocra_grad_ctrl_tb
 `endif //  `ifndef _OCRA_GRAD_CTRL_TB_

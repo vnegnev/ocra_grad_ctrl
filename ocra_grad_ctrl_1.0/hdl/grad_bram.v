@@ -241,7 +241,7 @@ module grad_bram #
    // and the slave is ready to accept the write address and write data.
    assign slv_reg_wen = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 
-   reg [31:0] grad_bram [2**OPT_MEM_ADDR_BITS-1:0]; // main BRAM; 8192 locations by default
+   reg [31:0] grad_brams [2**OPT_MEM_ADDR_BITS-1:0]; // main BRAM; 8192 locations by default
    reg [31:0] grad_bram_wdata = 0, grad_bram_wdata_r = 0; // pipelining
    reg 	      grad_bram_wen = 0, grad_bram_wen_r = 0, grad_bram_rd = 0, grad_bram_rd_r1 = 0, grad_bram_rd_r2 = 0; // pipelining
    reg [OPT_MEM_ADDR_BITS-1:0] grad_bram_waddr = 0, grad_bram_waddr_r = 0, grad_bram_raddr = 0, grad_bram_raddr_r = 0; // pipelining
@@ -256,7 +256,7 @@ module grad_bram #
 
       // defaults and pipelining
       grad_bram_wen <= 0;
-      if (grad_bram_wen) grad_bram[grad_bram_waddr] <= grad_bram_wdata;
+      if (grad_bram_wen) grad_brams[grad_bram_waddr] <= grad_bram_wdata;
    
       if (slv_reg_wen) begin
 	 if (axi_addr[OPT_MEM_ADDR_BITS]) begin // upper range: write to BRAM
@@ -336,7 +336,7 @@ module grad_bram #
       grad_bram_rd <= 0; // default
       valid_o <= 0; // default
       // always read from BRAM
-      grad_bram_rdata <= grad_bram[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
+      grad_bram_rdata <= grad_brams[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
       grad_bram_rdata_r <= grad_bram_rdata;
       case (state)
 	READ: begin

@@ -318,7 +318,7 @@ module grad_bram_tb;
 		 .S_AXI_RREADY		(S_AXI_RREADY));
 
    // Wires purely for debugging (since GTKwave can't access a single RAM word directly)
-   wire [31:0] bram_a0 = UUT.grad_bram[0], bram_a1 = UUT.grad_bram[1], bram_a1024 = UUT.grad_bram[1024], bram_a8000 = UUT.grad_bram[8000], bram_amax = UUT.grad_bram[8191];
+   wire [31:0] bram_a0 = UUT.grad_brams[0], bram_a1 = UUT.grad_brams[1], bram_a1024 = UUT.grad_brams[1024], bram_a8000 = UUT.grad_brams[8000], bram_amax = UUT.grad_brams[8191];
    wire [23:0] data_o_lower = data_o[23:0]; // to avoid all 32 bits; just for visual debugging
 endmodule // grad_bram_tb
 `endif //  `ifndef _GRAD_BRAM_TB_

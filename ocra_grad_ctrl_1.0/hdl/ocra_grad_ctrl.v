@@ -129,8 +129,10 @@ module ocra_grad_ctrl #
    // for the ocra1, data can be written even while it's outputting to
    // SPI - for the fhd, this isn't the case. So, don't use the
    // oc1_busy line for the below check, since it would mean that
-   // false errors would get flagged.
-   wire 				      busy = fhd_busy;
+   // false errors would get flagged. To avoid potential bugs in
+   // gpa_fhdo_iface, make sure that it's actually enabled for its
+   // busy to have an impact on execution.
+   wire 				      busy = fhd_busy & gpa_fhdo_data_valid;
    wire 				      data_lost = oc1_data_lost;
    
    // Instantiation of Axi Bus Interface S00_AXI
@@ -201,12 +203,6 @@ module ocra_grad_ctrl #
 			       .spi_clk_div_i	(spi_clk_div),
 			       .valid_i		(gpa_fhdo_data_valid),
 			       .fhd_sdi_i	(fhd_sdi_i));
-
-   // debugging only
-   // assign fhd_clk_o = 0;
-   // assign fhd_sdo_o = 0;
-   // assign fhd_ssn_o = 1;
-   // assign fhd_busy = 0;
 
    // Instantiation of Axi Bus Interface S_AXI_INTR
    ocra_grad_ctrl_S_AXI_INTR # ( 
