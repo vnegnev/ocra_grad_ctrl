@@ -123,17 +123,13 @@ module ocra_grad_ctrl #
    wire 				      oc1_data_valid = data_valid[0], gpa_fhdo_data_valid = data_valid[1];
    wire [5:0] 				      spi_clk_div;
    wire 				      clk = s00_axi_aclk; // alias
-   wire 				      oc1_busy, fhd_busy;
-   wire 				      oc1_data_lost;
 
    // for the ocra1, data can be written even while it's outputting to
-   // SPI - for the fhd, this isn't the case. So, don't use the
-   // oc1_busy line for the below check, since it would mean that
-   // false errors would get flagged. To avoid potential bugs in
-   // gpa_fhdo_iface, make sure that it's actually enabled for its
-   // busy to have an impact on execution.
-   wire 				      busy = fhd_busy & gpa_fhdo_data_valid;
-   wire 				      data_lost = oc1_data_lost;
+   // SPI - for the fhd, this isn't the case. So don't use the
+   // oc1_busy line in grad_bram, since it would mean that false
+   // errors would get flagged - just fhd_busy for now.
+   wire 				      fhd_busy;
+   wire 				      oc1_busy, oc1_data_lost;
    
    // Instantiation of Axi Bus Interface S00_AXI
    grad_bram # ( 
@@ -165,8 +161,8 @@ module ocra_grad_ctrl #
 
 		   .offset_i({2'd0, grad_bram_offset_i}),
 		   .data_enb_i(grad_bram_enb_i),
-		   .serial_busy_i(busy),
-		   .data_lost_i(data_lost),
+		   .serial_busy_i(fhd_busy),
+		   .data_lost_i(oc1_data_lost),
 		   .data_o(data),
 		   .valid_o(data_valid),
 		   .spi_clk_div_o(spi_clk_div)

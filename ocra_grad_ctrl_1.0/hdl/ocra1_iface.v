@@ -44,7 +44,7 @@ module ocra1_iface(
 		   // OCRA1 interface (startup values are set here as well)
 		   output reg 	oc1_clk_o = 0,
 		   output reg 	oc1_syncn_o = 1,
-		   output reg 	oc1_ldacn_o = 1,
+		   output reg 	oc1_ldacn_o = 0,
 		   output reg 	oc1_sdox_o = 0,
 		   output reg 	oc1_sdoy_o = 0,
 		   output reg 	oc1_sdoz_o = 0,
@@ -74,7 +74,6 @@ module ocra1_iface(
       // default assignments, which will take place unless overridden by other assignments in the FSM
 //       oc1_clk_o <= 1;
       oc1_syncn_o <= 0;
-      oc1_ldacn_o <= 1;
       busy_o <= 1;
 
       spi_clk_edge_div <= spi_clk_div_i[5:1];
