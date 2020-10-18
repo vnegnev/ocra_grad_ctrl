@@ -1,21 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Sat Oct 10 22:19:15 2020
+[*] Thu Oct 15 00:24:17 2020
 [*]
 [dumpfile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_ocra_grad_ctrl_tb.lxt"
-[dumpfile_mtime] "Sat Oct 10 22:17:27 2020"
-[dumpfile_size] 347796
+[dumpfile_mtime] "Thu Oct 15 00:23:45 2020"
+[dumpfile_size] 339691
 [savefile] "/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_ocra_grad_ctrl_tb.sav"
-[timestart] 0
+[timestart] 261200
 [size] 1920 1025
 [pos] -1 -1
-*-16.265295 28700 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.191109 382697 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] ocra_grad_ctrl_tb.
 [treeopen] ocra_grad_ctrl_tb.UUT.
 [sst_width] 280
 [signals_width] 293
 [sst_expanded] 1
-[sst_vpaned_height] 289
+[sst_vpaned_height] 290
 @28
 ocra_grad_ctrl_tb.clk[0]
 ocra_grad_ctrl_tb.rst_n[0]
@@ -23,7 +23,6 @@ ocra_grad_ctrl_tb.grad_bram_enb_i[0]
 @24
 ocra_grad_ctrl_tb.grad_bram_offset_i[13:0]
 @28
-ocra_grad_ctrl_tb.UUT.busy[0]
 ocra_grad_ctrl_tb.UUT.fhd_busy[0]
 ocra_grad_ctrl_tb.UUT.oc1_busy[0]
 @200
@@ -47,7 +46,6 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg2[31:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.slv_reg3[31:0]
 @200
 -
-@201
 -grad_bram
 @28
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_int_and_wait_done[0]
@@ -96,7 +94,7 @@ ocra_grad_ctrl_tb.UUT.grad_bram_inst.valid_o[3:0]
 ocra_grad_ctrl_tb.UUT.grad_bram_inst.data_interval_max[9:0]
 @200
 -
-@800200
+@c00200
 -ocra1
 @28
 ocra_grad_ctrl_tb.UUT.oc1_data_lost[0]
@@ -123,7 +121,7 @@ ocra_grad_ctrl_tb.UUT.ocra1_if.datax_r[23:0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.datay_r[23:0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.dataz_r[23:0]
 ocra_grad_ctrl_tb.UUT.ocra1_if.dataz2_r[23:0]
-@1000200
+@1401200
 -ocra1
 @200
 -
@@ -134,6 +132,9 @@ ocra_grad_ctrl_tb.UUT.gpa_fhdo_if.fhd_clk_o[0]
 ocra_grad_ctrl_tb.UUT.gpa_fhdo_if.fhd_csn_o[0]
 ocra_grad_ctrl_tb.UUT.gpa_fhdo_if.fhd_sdo_o[0]
 ocra_grad_ctrl_tb.UUT.gpa_fhdo_if.fhd_sdi_i[0]
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.busy_error[0]
+@29
+ocra_grad_ctrl_tb.UUT.grad_bram_inst.busy_error_r[0]
 @1000200
 -gpa_fhdo
 [pattern_trace] 1

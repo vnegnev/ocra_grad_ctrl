@@ -310,6 +310,15 @@ module ocra_grad_ctrl_tb;
       grad_bram_offset_i = 5000;
       #10 grad_bram_enb_i = 1;
 
+      #10000 grad_bram_enb_i = 0;
+      #100 rd32(16'd16, {14'd0, 2'b01, 16'h1388});
+      #10 rd32(16'd16, {14'd0, 2'b00, 16'h1388});
+      ////  TODO: properly test gpa_fhdo_iface -- below is a rough busy_error test to avoid causing them
+      // wr32(16'd0, 10'd400);
+      // wr32(16'd4, 6'd6);
+      // #10 rd32(16'd16, {14'd0, 2'b00, 16'h1388});
+      //#20000 grad_bram_enb_i = 1;
+
       #100000 if (err) begin
 	 $display("THERE WERE ERRORS");
 	 $stop; // to return a nonzero error code if the testbench is later scripted at a higher level

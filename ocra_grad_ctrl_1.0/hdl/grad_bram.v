@@ -336,6 +336,7 @@ module grad_bram #
       state <= IDLE; // default state      
       grad_bram_rd <= 0; // default
       valid_o <= 0; // default
+      busy_error <= 0; // default
       // always read from BRAM
       grad_bram_rdata <= grad_brams[grad_bram_raddr_r]; // pipelined rdaddr; probably unnecessary
       grad_bram_rdata_r <= grad_bram_rdata;
@@ -344,7 +345,6 @@ module grad_bram #
 	   if (serial_busy_i) begin
 	      busy_error <= 1; // make sure busy ends before next cycle is meant to begin
 	   end else begin
-	      busy_error <= 0;
 	      valid_o <= valid_enb; // output data immediately
 	   end
 	   state <= IDLE;
@@ -361,7 +361,7 @@ module grad_bram #
       endcase // case (state)
      
       // Slave register 4 will contain monitoring info
-      slv_reg4 <= {14'd0, data_lost_error_r, busy_error_r, grad_bram_raddr_r2};
+      slv_reg4 <= {14'd0, busy_error_r, data_lost_error_r, grad_bram_raddr_r2};
    end
    
    // VN: below is left in for reference, but won't be used in its current form
