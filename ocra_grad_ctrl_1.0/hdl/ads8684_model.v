@@ -24,14 +24,13 @@
  `timescale 1ns/1ns
 
 module ads8684_model(
-		// pin labelling as in the DAC80504 datasheet
-		input 	      ldacn,
+		// pin labelling as in the ADS8684 datasheet
 		input 	      csn,
 		input 	      sclk,
 		input 	      sdi,
 
 		output reg 	      sdo,
-		input reg [15:0] vin0, vin1, vin2, vin3 // 
+		input reg [15:0] ain_0p, ain_1p, ain_2p, ain_3p // 
 		);
 
 	// internal ADC registers
@@ -77,16 +76,16 @@ module ads8684_model(
 				if (output_bits_left == 16) begin
 					// TODO: implement other operating modes
 					if (Operating_Mode == 8'hC0) begin
-						spi_output <= vin0;
+						spi_output <= ain_0p;
 					end
 					else if (Operating_Mode == 8'hC1) begin
-						spi_output <= vin1;
+						spi_output <= ain_1p;
 					end
 					else if (Operating_Mode == 8'hC2) begin
-						spi_output <= vin2;
+						spi_output <= ain_2p;
 					end
 					else if (Operating_Mode == 8'hC3) begin
-						spi_output <= vin3;
+						spi_output <= ain_3p;
 					end
 					else begin
 						output_bits_left <= 0;
