@@ -52,7 +52,6 @@ module ads8684_model(
 	reg [5:0] 			  spi_counter = 0;
 	reg [7:0]			  output_bits_left = 32;
 	reg [15:0]			  spi_output = 0;
-	reg 		          read_mode = 0; 
 	wire 			  	  spi_transfer_done = spi_counter == 16; 
 
 	always @(negedge sclk or posedge csn) begin
@@ -73,39 +72,40 @@ module ads8684_model(
 				if (spi_cmd & 8'h80) begin
 					Operating_Mode <= spi_cmd; // problem: new value will only be updated at next clk
 				end
-				if (output_bits_left == 16) begin
-					// TODO: implement other operating modes
-					if (Operating_Mode == 8'hC0) begin
-						spi_output <= ain_0p;
-					end
-					else if (Operating_Mode == 8'hC1) begin
-						spi_output <= ain_1p;
-					end
-					else if (Operating_Mode == 8'hC2) begin
-						spi_output <= ain_2p;
-					end
-					else if (Operating_Mode == 8'hC3) begin
-						spi_output <= ain_3p;
-					end
-					else begin
-						output_bits_left <= 0;
-					end
+			end
+			if (output_bits_left == 17) begin
+				// TODO: implement other operating modes
+				if (Operating_Mode == 8'hC0) begin
+					spi_output <= ain_0p;
+				end
+				else if (Operating_Mode == 8'hC1) begin
+					spi_output <= ain_1p;
+				end
+				else if (Operating_Mode == 8'hC2) begin
+					spi_output <= ain_2p;
+				end
+				else if (Operating_Mode == 8'hC3) begin
+					spi_output <= ain_3p;
+				end
+				else begin
+					output_bits_left <= 0;
 				end
 			end
 			// output starts 16 bits after CS went high
-			if (output_bits_left < 9) begin
+			// OUTPUT
+			else if (output_bits_left < 16) begin
 				sdo <= spi_output[15];
 				spi_output <= {spi_output[14:0] 0};
 			end
 			output_bits_left <= output_bits_left - 1;
 		end 
+		// INPUT
 		else begin
 			spi_input <= {spi_input[14:0], sdi}; // clock in data only when syncn low
 			if (spi_counter != 16) spi_counter <= spi_counter + 1;
-			if (spi_counter == 7) read_mode <= sdi; // MSB of transfer
 			output_bits_left <= 32;
-		end // else: !if(csn)
-	end // always @ (negedge sclk or csn)
+		end 
+	end 
    
 endmodule 
 `endif 
