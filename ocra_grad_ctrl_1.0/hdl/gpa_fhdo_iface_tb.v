@@ -21,113 +21,128 @@
 //-----------------------------------------------------------------------------
 
 `ifndef _GPA_FHDO_IFACE_TB_
- `define _GPA_FHDO_IFACE_TB_
+	`define _GPA_FHDO_IFACE_TB_
 
- `include "gpa_fhdo_iface.v"
- `include "dac80504_model.v"
+`include "gpa_fhdo_iface.v"
+`include "dac80504_model.v"
+`include "ads8684_model.v"
 
  `timescale 1ns/1ns
 
 module gpa_fhdo_iface_tb;
    
-   reg			clk;			
-   reg [31:0]		data_i;	
-   reg [5:0]		spi_clk_div_i;	   
-   reg			valid_i;		
+	reg			clk;			
+	reg [31:0]		data_i;	
+	reg [5:0]		spi_clk_div_i;	   
+	reg			valid_i;		
 
-   //
-   wire			busy_o;			
-   wire			ldacn;			
-   wire			sclk;			
-   wire			sdo;			
-   wire			sdi;			
-   wire			csn;			
-   wire [17:0]		voutx;		
-   wire [17:0]		vouty;		
-   wire [17:0]		voutz;		
-   wire [17:0]		voutz2;		
+	//
+	wire			busy_o;			
+	wire			ldacn;			
+	wire			sclk;			
+	wire			sdo;			
+	wire			sdi;			
+	wire			csn;			
+	wire [17:0]		voutx;		
+	wire [17:0]		vouty;		
+	wire [17:0]		voutz;		
+	wire [17:0]		voutz2;		
 
-   initial begin
-      $dumpfile("icarus_compile/000_gpa_fhdo_iface_tb.lxt");
-      $dumpvars(0, gpa_fhdo_iface_tb);
+	initial begin
+		$dumpfile("icarus_compile/000_gpa_fhdo_iface_tb.lxt");
+		$dumpvars(0, gpa_fhdo_iface_tb);
 
-      // initialisation
-      clk = 1;
-      data_i = 0;
-      valid_i = 0;
-	  spi_clk_div_i = 32;
+		// initialisation
+		clk = 1;
+		data_i = 0;
+		valid_i = 0;
+		spi_clk_div_i = 32;
 
-      #100 send(1,2,3,4);
-      #20000 send(5,6,7,8);
+		#100 send(1,2,3,4);
+		#20000 send(5,6,7,8);
 
-      // VN: some manual tests, max throughput
-      #20000 data_i = {5'd0, 2'd0, 1'd0, 24'ha}; valid_i = 1; #10 valid_i = 0;
-      #160 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd1, 1'd0, 24'hb}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd2, 1'd0, 24'hc}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd3, 1'd0, 24'hd}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd0, 1'd0, 24'he}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd1, 1'd0, 24'hf}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd2, 1'd0, 24'h10}; valid_i = 1; #10 valid_i = 0;
-      #320 wait(!busy_o);
-      #10 data_i = {5'd0, 2'd3, 1'd0, 24'h11}; valid_i = 1; #10 valid_i = 0;
- 
-      #20000 $finish;
-   end // initial begin
+		// VN: some manual tests, max throughput
+		#20000 data_i = {5'd0, 2'd0, 1'd0, 24'ha}; valid_i = 1; #10 valid_i = 0;
+		#160 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd1, 1'd0, 24'hb}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd2, 1'd0, 24'hc}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd3, 1'd0, 24'hd}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd0, 1'd0, 24'he}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd1, 1'd0, 24'hf}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd2, 1'd0, 24'h10}; valid_i = 1; #10 valid_i = 0;
+		#320 wait(!busy_o);
+		#10 data_i = {5'd0, 2'd3, 1'd0, 24'h11}; valid_i = 1; #10 valid_i = 0;
 
-   task send; // send data to OCRA1 interface core
-      input [23:0] inx, iny, inz, inz2;
-      begin
-	 // TODO: perform a check to see whether the busy line is set before trying to send data
-	 #10 data_i = {5'd0, 2'd0, 1'd0, inx};
-	 valid_i = 1;
-	 #10 valid_i = 0;
-	 #80000 data_i = {5'd0, 2'd1, 1'd0, iny};
-	 valid_i = 1;
-	 #20000 valid_i = 0;
-	 #80000 data_i = {5'd0, 2'd2, 1'd0, inz};
-	 valid_i = 1;
-	 #10 valid_i = 0; 	 
-	 #80000 data_i = {5'd0, 2'd3, 1'd1, inz2};
- 	 valid_i = 1;
-	 #10 valid_i = 0;
-      end
-   endtask // send
+		#20000 $finish;
+	end // initial begin
+
+	task send; // send data to OCRA1 interface core
+	input [23:0] inx, iny, inz, inz2;
+	begin
+		// TODO: perform a check to see whether the busy line is set before trying to send data
+		#10 data_i = {5'd0, 2'd0, 1'd0, inx};
+		valid_i = 1;
+		#10 valid_i = 0;
+		#80000 data_i = {5'd0, 2'd1, 1'd0, iny};
+		valid_i = 1;
+		#20000 valid_i = 0;
+		#80000 data_i = {5'd0, 2'd2, 1'd0, inz};
+		valid_i = 1;
+		#10 valid_i = 0; 	 
+		#80000 data_i = {5'd0, 2'd3, 1'd1, inz2};
+		valid_i = 1;
+		#10 valid_i = 0;
+	end
+	endtask // send
 
    always #5 clk = !clk;
 
-   gpa_fhdo_iface UUT(
-			.clk		(clk),
-			/*AUTOINST*/
-			// Outputs
-		    .busy_o		(busy_o),
-		    .fhd_sdo_o	(sdo),
-		    .fhd_clk_o  (sclk),
-			.fhd_csn_o	(csn),
-			// Inputs		     
-		    .data_i		(data_i),		
-		    .valid_i	(valid_i),
-		    .fhd_sdi_i		(sdi),
-			.spi_clk_div_i	(spi_clk_div_i[5:0]));
+gpa_fhdo_iface UUT(
+	.clk		(clk),
+	/*AUTOINST*/
+	// Outputs
+	.busy_o		(busy_o),
+	.fhd_sdo_o	(sdo),
+	.fhd_clk_o  (sclk),
+	.fhd_csn_o	(csn),
+	// Inputs		     
+	.data_i		(data_i),		
+	.valid_i	(valid_i),
+	.fhd_sdi_i		(sdi),
+	.spi_clk_div_i	(spi_clk_div_i[5:0]));
 
-   dac80504_model GPA_FHDO(
-		     .sclk		(sclk),
-		     /*AUTOINST*/
-		     // Outputs
-		     .sdo		(sdi),			 
-		     .vout0		(voutx[15:0]),
-		     .vout1		(vouty[15:0]),
-		     .vout2		(voutz[15:0]),
-		     .vout3		(voutz2[15:0]),
-		     // Inputs
-             .ldacn		(ldacn),
-		     .csn		(csn),
-		     .sdi		(sdo));
+dac80504_model GPA_FHDO_DAC(
+	.sclk		(sclk),
+	/*AUTOINST*/
+	// Outputs
+	.sdo		(sdi),			 
+	.vout0		(voutx[15:0]),
+	.vout1		(vouty[15:0]),
+	.vout2		(voutz[15:0]),
+	.vout3		(voutz2[15:0]),
+	// Inputs
+	.ldacn		(ldacn),
+	.csn		(csn),
+	.sdi		(sdo));
+	
+ads8684_model GPA_FHDO_ADC(
+	.sclk		(sclk),
+	/*AUTOINST*/
+	// Outputs
+	.sdo		(sdi),			 
+	// Inputs
+	.csn		(csn),
+	.sdi		(sdo),
+	.ain_0p		(voutx[15:0]),
+	.ain_1p		(vouty[15:0]),
+	.ain_2p		(voutz[15:0]),
+	.ain_3p		(voutz2[15:0]));	
+	
 
 
 endmodule // gpa_fhdo_iface_tb
