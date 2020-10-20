@@ -41,7 +41,6 @@ module ads8684_model(
 				Channel_1_Input_Range = 8'h00,
 				Channel_2_Input_Range = 8'h00,
 				Channel_3_Input_Range = 8'h00;
-	reg	[7:0]	Operating_Mode = 0;
 
 
 
@@ -69,9 +68,6 @@ module ads8684_model(
 					8'h07: Channel_2_Input_Range = spi_payload[7:0];
 					8'h08: Channel_3_Input_Range = spi_payload[7:0];
 				endcase
-				if (spi_cmd & 8'h80) begin
-					Operating_Mode <= spi_cmd; 
-				end
 			end
 			if (spi_cmd & 8'h80) begin
 				// TODO: implement other operating modes
