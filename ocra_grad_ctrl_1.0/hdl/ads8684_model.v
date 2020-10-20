@@ -49,7 +49,7 @@ module ads8684_model(
 	wire [15:0] 		  spi_payload = spi_input[15:0];
 	wire [6:0] 			  spi_addr = spi_input[15:9];
 	wire [7:0] 			  spi_cmd = spi_input[15:8];
-	reg [5:0] 			  spi_counter = 0;
+	reg [7:0] 			  spi_counter = 0;
 	reg [7:0]			  output_bits_left = 32;
 	reg [15:0]			  spi_output = 0;
 	wire 			  	  spi_transfer_done = spi_counter == 16; 
@@ -73,42 +73,38 @@ module ads8684_model(
 					Operating_Mode <= spi_cmd; 
 				end
 			end
-			if (output_bits_left == 17) begin
+			if (spi_cmd & 8'h80) begin
 				// TODO: implement other operating modes
-				if (Operating_Mode == 8'hC0) begin
+				if (spi_cmd == 8'hC0) begin
 					spi_output <= ain_0p;
 				end
-				else if (Operating_Mode == 8'hC1) begin
+				else if (spi_cmd == 8'hC1) begin
 					spi_output <= ain_1p;
 				end
-				else if (Operating_Mode == 8'hC2) begin
+				else if (spi_cmd == 8'hC2) begin
 					spi_output <= ain_2p;
 				end
-				else if (Operating_Mode == 8'hC3) begin
+				else if (spi_cmd == 8'hC3) begin
 					spi_output <= ain_3p;
 				end
 				else begin
 					output_bits_left <= 0;
 				end
 			end
-			// output starts 16 bits after CS went high
-			// OUTPUT
-			else if (output_bits_left < 17) begin
+		end 
+		
+		else begin
+			spi_counter <= spi_counter + 1;
+			if (spi_counter < 16) begin
+				spi_input <= {spi_input[14:0], sdi}; // clock in data only when syncn low
+			end
+			if (spi_counter >= 15) begin
 				sdo <= spi_output[15];
 				spi_output <= {spi_output[14:0], 1'b0};
 			end
 			else begin
 				sdo <= 0;
 			end
-			output_bits_left <= output_bits_left - 1;
-		end 
-		// INPUT
-		else begin
-			if (spi_counter != 16) begin
-				spi_input <= {spi_input[14:0], sdi}; // clock in data only when syncn low
-				spi_counter <= spi_counter + 1;
-			end
-			output_bits_left <= 32;
 		end 
 	end 
    

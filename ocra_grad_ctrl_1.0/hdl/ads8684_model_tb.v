@@ -61,15 +61,20 @@ module ads8684_model_tb;
 		for (k = 31; k >= 0; k = k - 1) begin
 			#10 sclk = 1;
 			sdi = word_to_send[k];
-			#10 sclk = 0;
-		end
-		#10 csn = 1;
-		#10
-		for (k = 31; k >= 0; k = k - 1) begin
-			#10 sclk = 1;
 			received_data[k] = sdo;
 			#10 sclk = 0;
 		end
+		#10 csn = 1;
+		
+		word_to_send = {16'h0000, 16'h0000};
+		#20 csn = 0;
+		for (k = 31; k >= 0; k = k - 1) begin
+			#10 sclk = 1;
+			sdi = word_to_send[k];
+			received_data[k] = sdo;
+			#10 sclk = 0;
+		end
+		#10 csn = 1;		
 
 
 		// check DAC output word is as expected before and after cs
