@@ -144,7 +144,7 @@ module gpa_fhdo_iface(
 				case(state)
 					START_SPI: begin
 						// load data for current transfer into spi_output
-						spi_output[15:0] <= payload_r[15:0];
+						spi_output[23:0] <= {payload_r[15:0],8'h00};
 						state <= OUTPUT_SPI;
 					end
 					OUTPUT_SPI: begin

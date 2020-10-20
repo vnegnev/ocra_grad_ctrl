@@ -59,6 +59,17 @@ module gpa_fhdo_iface_tb;
 		spi_clk_div_i = 32;
 
 		#100 send(1,2,3,4);
+		// read adc
+		#80000
+		#10 data_i = {5'b01000, 2'd0, 1'd0, 24'hC000};
+		valid_i = 1;
+		#10 valid_i = 0;
+		#80000
+		#10 data_i = {5'b01000, 2'd0, 1'd0, 24'hC000};
+		valid_i = 1;
+		#10 valid_i = 0;
+		//
+		
 		#20000 send(5,6,7,8);
 
 		// VN: some manual tests, max throughput
@@ -120,7 +131,7 @@ dac80504_model GPA_FHDO_DAC(
 	.sclk		(sclk),
 	/*AUTOINST*/
 	// Outputs
-	.sdo		(sdi),			 
+	//.sdo		(sdi),			 // disconnect to not interfere with adc
 	.vout0		(voutx[15:0]),
 	.vout1		(vouty[15:0]),
 	.vout2		(voutz[15:0]),
@@ -136,7 +147,7 @@ ads8684_model GPA_FHDO_ADC(
 	// Outputs
 	.sdo		(sdi),			 
 	// Inputs
-	.csn		(csn),
+	.csn		(!csn),
 	.sdi		(sdo),
 	.ain_0p		(voutx[15:0]),
 	.ain_1p		(vouty[15:0]),

@@ -49,15 +49,13 @@ module ads8684_model(
 	wire [6:0] 			  spi_addr = spi_input[15:9];
 	wire [7:0] 			  spi_cmd = spi_input[15:8];
 	reg [7:0] 			  spi_counter = 0;
-	reg [7:0]			  output_bits_left = 32;
 	reg [15:0]			  spi_output = 0;
-	wire 			  	  spi_transfer_done = spi_counter == 16; 
 
 	always @(negedge sclk or posedge csn) begin
 		if (csn) begin
 			spi_counter <= 0;
 			spi_input <= 0;
-			if (spi_transfer_done) begin // executed only once after CS went high
+			if (spi_counter > 15) begin // executed only once after CS went high
 			// $display("addr %d payload %d",spi_addr,spi_payload);
 				case(spi_addr)
 					8'h01: AUTO_SEQ_EN = spi_payload[7:0];
@@ -82,9 +80,6 @@ module ads8684_model(
 				end
 				else if (spi_cmd == 8'hC3) begin
 					spi_output <= ain_3p;
-				end
-				else begin
-					output_bits_left <= 0;
 				end
 			end
 		end 
