@@ -30,10 +30,10 @@ module ads8684_model_tb;
 	reg			ldacn;			
 	reg			sclk;		
 	reg			sdi;		
-	reg			ain_0p[15:0];
-	reg			ain_1p[15:0];
-	reg			ain_2p[15:0];
-	reg			ain_3p[15:0];
+	reg	[15:0]		ain_0p;
+	reg	[15:0]		ain_1p;
+	reg	[15:0]		ain_2p;
+	reg	[15:0]		ain_3p;
 
 	wire			sdo;	
 
@@ -55,16 +55,17 @@ module ads8684_model_tb;
 		#100 csn = 1;
 
 		// read channel 0
+		ain_0p = 16'hCAFE;
 		word_to_send = {16'hC000, 16'h0000};
 		#20 csn = 0;
-		for (k = 23; k >= 0; k = k - 1) begin
+		for (k = 31; k >= 0; k = k - 1) begin
 			#10 sclk = 1;
 			sdi = word_to_send[k];
 			#10 sclk = 0;
 		end
 		#10 csn = 1;
 		#10
-		for (k = 23; k >= 0; k = k - 1) begin
+		for (k = 31; k >= 0; k = k - 1) begin
 			#10 sclk = 1;
 			received_data[k] = sdo;
 			#10 sclk = 0;
@@ -91,11 +92,11 @@ module ads8684_model_tb;
 		// Inputs
 		.csn		(csn),
 		.sclk		(sclk),
-		.sdi		(sdi)),
+		.sdi		(sdi),
 		.ain_0p		(ain_0p[15:0]),
 		.ain_1p		(ain_1p[15:0]),
 		.ain_2p		(ain_2p[15:0]),
-		.ain_3p		(ain_3p[15:0]);
+		.ain_3p		(ain_3p[15:0]));
    
 endmodule // dac80504_model_tb
 `endif //  `ifndef _DAC80504_MODEL_TB_

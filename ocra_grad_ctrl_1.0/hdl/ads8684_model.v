@@ -28,9 +28,9 @@ module ads8684_model(
 		input 	      csn,
 		input 	      sclk,
 		input 	      sdi,
+		input [15:0] ain_0p, ain_1p, ain_2p, ain_3p,
 
-		output reg 	      sdo,
-		input reg [15:0] ain_0p, ain_1p, ain_2p, ain_3p // 
+		output reg 	      sdo
 		);
 
 	// internal ADC registers
@@ -70,7 +70,7 @@ module ads8684_model(
 					8'h08: Channel_3_Input_Range = spi_payload[7:0];
 				endcase
 				if (spi_cmd & 8'h80) begin
-					Operating_Mode <= spi_cmd; // problem: new value will only be updated at next clk
+					Operating_Mode <= spi_cmd; 
 				end
 			end
 			if (output_bits_left == 17) begin
@@ -93,16 +93,21 @@ module ads8684_model(
 			end
 			// output starts 16 bits after CS went high
 			// OUTPUT
-			else if (output_bits_left < 16) begin
+			else if (output_bits_left < 17) begin
 				sdo <= spi_output[15];
-				spi_output <= {spi_output[14:0] 0};
+				spi_output <= {spi_output[14:0], 1'b0};
+			end
+			else begin
+				sdo <= 0;
 			end
 			output_bits_left <= output_bits_left - 1;
 		end 
 		// INPUT
 		else begin
-			spi_input <= {spi_input[14:0], sdi}; // clock in data only when syncn low
-			if (spi_counter != 16) spi_counter <= spi_counter + 1;
+			if (spi_counter != 16) begin
+				spi_input <= {spi_input[14:0], sdi}; // clock in data only when syncn low
+				spi_counter <= spi_counter + 1;
+			end
 			output_bits_left <= 32;
 		end 
 	end 
