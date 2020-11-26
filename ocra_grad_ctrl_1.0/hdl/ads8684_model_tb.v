@@ -83,6 +83,33 @@ module ads8684_model_tb;
 			err <= 1;
 		end      
 
+
+		word_to_send = {16'hC000, 16'h0000};
+		#20 csn = 0;
+	        // send only 25 bits, answer should be 0xFFFF
+		for (k = 24; k >= 0; k = k - 1) begin
+			#10 sclk = 1;
+			sdi = word_to_send[k];
+			received_data[k] = sdo;
+			#10 sclk = 0;
+		end
+		#10 csn = 1;
+		
+		word_to_send = {16'h0000, 16'h0000};
+		#20 csn = 0;
+		for (k = 31; k >= 0; k = k - 1) begin
+			#10 sclk = 1;
+			sdi = word_to_send[k];
+			received_data[k] = sdo;
+			#10 sclk = 0;
+		end
+		#10 csn = 1;
+
+	   		#10 if (received_data[31:16] != 16'hFFFF) begin
+			$display("%d ns: Unexpected ADC output, expected %x, saw %x.", $time, ain_0p, received_data);
+			err <= 1;
+		end      
+
       
 		#1000 if (err) begin
 			$display("THERE WERE ERRORS");

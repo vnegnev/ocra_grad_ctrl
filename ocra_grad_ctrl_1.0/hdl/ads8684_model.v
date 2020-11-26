@@ -50,6 +50,7 @@ module ads8684_model(
 	wire [7:0] 			  spi_cmd = spi_input[15:8];
 	reg [7:0] 			  spi_counter = 0;
 	reg [15:0]			  spi_output = 0;
+   reg 					  finished_sampling = 0;
 
 	always @(negedge sclk or posedge csn) begin
 		if (csn) begin
@@ -66,22 +67,28 @@ module ads8684_model(
 					8'h07: Channel_2_Input_Range = spi_payload[7:0];
 					8'h08: Channel_3_Input_Range = spi_payload[7:0];
 				endcase
+			end // if (spi_counter > 15)
+		    if (finished_sampling == 1) begin
+				if (spi_cmd & 8'h80) begin
+			      // TODO: implement other operating modes
+					if (spi_cmd == 8'hC0) begin
+						spi_output <= ain_0p;
+					end
+					else if (spi_cmd == 8'hC1) begin
+						spi_output <= ain_1p;
+					end
+					else if (spi_cmd == 8'hC2) begin
+						spi_output <= ain_2p;
+					end
+					else if (spi_cmd == 8'hC3) begin
+						spi_output <= ain_3p;
+					end
+				end // if (spi_cmd & 8'h80)
+			end // if (finished_sampling)
+			else begin
+			   spi_output <= 16'hFFFF;
 			end
-			if (spi_cmd & 8'h80) begin
-				// TODO: implement other operating modes
-				if (spi_cmd == 8'hC0) begin
-					spi_output <= ain_0p;
-				end
-				else if (spi_cmd == 8'hC1) begin
-					spi_output <= ain_1p;
-				end
-				else if (spi_cmd == 8'hC2) begin
-					spi_output <= ain_2p;
-				end
-				else if (spi_cmd == 8'hC3) begin
-					spi_output <= ain_3p;
-				end
-			end
+			  
 		end 
 		
 		else begin
@@ -95,6 +102,12 @@ module ads8684_model(
 			end
 			else begin
 				sdo <= 0;
+			end
+		    if (spi_counter==0) begin
+			   finished_sampling <= 0;
+			end
+		        if (spi_counter == 31) begin
+			   finished_sampling <= 1;
 			end
 		end 
 	end 
