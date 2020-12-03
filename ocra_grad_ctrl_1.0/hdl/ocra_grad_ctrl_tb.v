@@ -46,7 +46,9 @@ module ocra_grad_ctrl_tb;
    wire s00_axi_aresetn = rst_n;
    reg 	err; // error flag in testbench
 
-   wire [17:0] oc1_voutx, oc1_vouty, oc1_voutz, oc1_voutz2, fhd_sdi_i;
+   wire [17:0] oc1_voutx, oc1_vouty, oc1_voutz, oc1_voutz2;
+   wire [15:0] fhd_voutx, fhd_vouty, fhd_voutz, fhd_voutz2;
+   wire        fhd_sdi_i;
    
    /*AUTOREGINPUT*/
    // Beginning of automatic reg inputs (for undeclared instantiated-module inputs)
@@ -547,10 +549,10 @@ module ocra_grad_ctrl_tb;
 
    gpa_fhdo_model fhd_model(// Outputs
 			    .sdi		(fhd_sdi_i),
-			    .voutx		(voutx[15:0]),
-			    .vouty		(vouty[15:0]),
-			    .voutz		(voutz[15:0]),
-			    .voutz2		(voutz2[15:0]),
+			    .voutx		(fhd_voutx[15:0]),
+			    .vouty		(fhd_vouty[15:0]),
+			    .voutz		(fhd_voutz[15:0]),
+			    .voutz2		(fhd_voutz2[15:0]),
 			    // Inputs
 			    .clk		(fhd_clk_o),
 			    .csn		(fhd_ssn_o),

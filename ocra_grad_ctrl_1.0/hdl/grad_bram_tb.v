@@ -110,7 +110,7 @@ module grad_bram_tb;
       wr32(16'd16, 32'h12345678); // reg 4 -- this write should do nothing, since reg 4 isn't implemented
 
       // register readback tests
-      #10 rd32(16'd0, {22'd0, 10'd303});
+      #10 rd32(16'd0, {16'd0, 16'd303});
       rd32(16'd4, {26'd0, 6'd30});
       rd32(16'd8, 32'hcafebeef);
       rd32(16'd12, 32'habcd0123);
@@ -131,8 +131,8 @@ module grad_bram_tb;
       #100 data_enb_i = 1;
 
       // Change output rate to be maximally fast (one output per 4 clock cycles), then change back to normal
-      #29300 wr32(16'd0, {22'd0, 10'd0});
-      #200 wr32(16'd0, {22'd0, 10'd303});
+      #29300 wr32(16'd0, {16'd0, 16'd0});
+      #200 wr32(16'd0, {16'd0, 16'd303});
 
       // Change BRAM offset (before previous output is finished)
       #5000 offset_i = 10;

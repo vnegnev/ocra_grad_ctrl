@@ -145,7 +145,7 @@ module grad_bram #
    //-- Signals for user logic register space example
    //------------------------------------------------
    //-- Number of Slave Registers 8
-   reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg0 = {22'd0, 10'd303}; // 10 LSBs: interval sample rate divisor (governs DAC's ksps)
+   reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg0 = {16'd0, 16'd303}; // 16 LSBs: interval sample rate divisor (governs DAC's ksps)
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg1 = {26'd0, 6'd32}; // 6 LSBs: SPI clock divisor for ocra1 iface (governs SPI clock speed)
    reg [C_S_AXI_DATA_WIDTH-1:0] 	      slv_reg2 = {28'd0, 4'b1111}; // selectively enable/disable serialisers
    wire [3:0] 				      valid_enb = slv_reg2[3:0];
@@ -297,8 +297,8 @@ module grad_bram #
     four cycles of delay in HDL logic).
     */
 
-   wire [9:0] data_interval_max = slv_reg0[9:0];
-   reg [9:0]  data_interval_cnt = 0;
+   wire [15:0] data_interval_max = slv_reg0[15:0];
+   reg [15:0]  data_interval_cnt = 0;
    wire       data_interval_done = data_interval_cnt > data_interval_max;
    reg 	      data_interval_done_r = 0, data_interval_done_r2 = 0, data_interval_done_p = 0;
    reg [15:0] data_wait_cnt = 0, data_wait_max = 0; // longer waits, in units of data interval
