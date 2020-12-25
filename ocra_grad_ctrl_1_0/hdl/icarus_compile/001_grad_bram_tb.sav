@@ -1,0 +1,114 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Thu Nov 19 16:12:16 2020
+[*]
+[dumpfile] "/mnt/ubuntu/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/000_grad_bram_tb.lxt"
+[dumpfile_mtime] "Thu Nov 19 16:12:06 2020"
+[dumpfile_size] 189456
+[savefile] "/mnt/ubuntu/home/vlad/Documents/mri/ocra_grad_ctrl/ocra_grad_ctrl_1.0/hdl/icarus_compile/001_grad_bram_tb.sav"
+[timestart] 0
+[size] 1920 992
+[pos] -1 -1
+*-6.242731 282 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] grad_bram_tb.
+[sst_width] 230
+[signals_width] 259
+[sst_expanded] 1
+[sst_vpaned_height] 305
+@28
+grad_bram_tb.S_AXI_ACLK[0]
+grad_bram_tb.S_AXI_ARESETN[0]
+@24
+grad_bram_tb.offset_i[15:0]
+@28
+grad_bram_tb.data_enb_i[0]
+@22
+grad_bram_tb.data_o[31:0]
+@23
+grad_bram_tb.valid_o[3:0]
+@24
+grad_bram_tb.spi_clk_div_o[5:0]
+@200
+-
+-grad_bram internals
+@22
+grad_bram_tb.UUT.slv_reg0[31:0]
+grad_bram_tb.UUT.slv_reg1[31:0]
+grad_bram_tb.UUT.slv_reg2[31:0]
+grad_bram_tb.UUT.slv_reg3[31:0]
+grad_bram_tb.UUT.slv_reg4[31:0]
+grad_bram_tb.UUT.slv_reg5[31:0]
+grad_bram_tb.UUT.slv_reg6[31:0]
+grad_bram_tb.UUT.slv_reg7[31:0]
+@24
+grad_bram_tb.UUT.data_interval_max[9:0]
+grad_bram_tb.UUT.data_interval_cnt[9:0]
+@28
+grad_bram_tb.UUT.data_interval_done[0]
+grad_bram_tb.UUT.data_interval_done_r[0]
+grad_bram_tb.UUT.data_interval_done_r2[0]
+grad_bram_tb.UUT.data_interval_done_p[0]
+grad_bram_tb.UUT.serial_busy_i[0]
+grad_bram_tb.UUT.data_lost_i[0]
+grad_bram_tb.UUT.state[1:0]
+@200
+-
+@24
+grad_bram_tb.bram_a0[31:0]
+grad_bram_tb.bram_a1[31:0]
+grad_bram_tb.bram_a1024[31:0]
+@22
+grad_bram_tb.bram_a8000[31:0]
+@24
+grad_bram_tb.bram_amax[31:0]
+@c00024
+grad_bram_tb.UUT.grad_bram_raddr[12:0]
+@28
+(0)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(1)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(2)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(3)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(4)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(5)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(6)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(7)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(8)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(9)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(10)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(11)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+(12)grad_bram_tb.UUT.grad_bram_raddr[12:0]
+@1401200
+-group_end
+@22
+grad_bram_tb.UUT.data_wait_cnt[15:0]
+grad_bram_tb.UUT.data_wait_max[15:0]
+@28
+grad_bram_tb.UUT.data_wait_done_r[0]
+grad_bram_tb.UUT.data_int_and_wait_done[0]
+@200
+-
+@24
+grad_bram_tb.data_o_lower[23:0]
+grad_bram_tb.data_o[31:0]
+@8024
+grad_bram_tb.data_o[31:0]
+@20000
+-
+@200
+-AXI bus
+@28
+grad_bram_tb.S_AXI_ARESETN[0]
+@22
+grad_bram_tb.S_AXI_ARADDR[15:0]
+@28
+grad_bram_tb.S_AXI_ARVALID[0]
+grad_bram_tb.S_AXI_ARREADY[0]
+@22
+grad_bram_tb.S_AXI_AWADDR[15:0]
+@28
+grad_bram_tb.S_AXI_AWVALID[0]
+grad_bram_tb.S_AXI_AWREADY[0]
+grad_bram_tb.S_AXI_WREADY[0]
+grad_bram_tb.UUT.aw_en[0]
+[pattern_trace] 1
+[pattern_trace] 0
